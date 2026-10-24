@@ -2239,15 +2239,31 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
                 </div>
               </div>
             </div>
-            <div style="text-align: right; margin-left: 10px; flex-shrink: 0;">
+            <div style="text-align: right; margin-left: 10px; flex-shrink: 0; display: flex; align-items: center; gap: 8px;">
               <div class="${valClass}" style="font-size: 15px; font-weight: 600;">
                 ${sign} ${this.fmtBRL(item.valor)}
               </div>
+              <button onclick="event.stopPropagation(); App.deleteMovement(${item.id})" title="Excluir lançamento" style="background: none; border: none; cursor: pointer; padding: 4px; border-radius: 6px; color: var(--text-muted); display: flex; align-items: center;" onmouseover="this.style.color='var(--red-expense)'" onmouseout="this.style.color='var(--text-muted)'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
             </div>
           </div>
         `;
       },
-
+      async deleteMovement(id) {
+        if (!confirm('Excluir este lançamento? Essa ação não pode ser desfeita.')) return;
+        try {
+          const { error } = await sb
+            .from('lancamentos')
+            .delete()
+            .eq('id', id);
+          if (error) throw error;
+          await this.navigate('home');
+        } catch (err) {
+          console.error('Erro ao excluir:', err);
+          alert('Não foi possível excluir. Tente de novo.');
+        }
+      },
       openMovementDetails(id) {
         const item = this.lancamentos.find(m => m.id === id);
         if (!item) return;
