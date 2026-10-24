@@ -3323,19 +3323,23 @@ const Auth = {
     const empresa = document.getElementById('su-empresa').value.trim();
     const email = document.getElementById('su-email').value.trim();
     const telefone = document.getElementById('su-telefone').value.trim();
+    const nomeDaEmpresa = document.getElementById('id-do-campo-nome').value.trim()
+const telefone = document.getElementById('id-do-campo-telefone').value.trim()
     const senha = document.getElementById('su-senha').value;
     if (!empresa) return this.suMsg('Informe o nome da empresa.');
     if (!email) return this.suMsg('Informe o e-mail.');
     if (telefone.replace(/\D/g, '').length < 10) return this.suMsg('Informe um telefone válido com DDD.');
     if (senha.length < 8) return this.suMsg('A senha precisa ter no mínimo 8 caracteres.');
-    const { data, error } = await sb.auth.signUp({ email, password: senha });
-    if (error) return this.suMsg('Não foi possível criar a conta: ' + error.message);
-    if (data.session) {
-      const { error: errNeg } = await sb.from('negocios').insert({
-        user_id: data.user.id,
-        nome: empresa,
-        telefone: telefone
-      });
+const { data, error } = await supabase.auth.signUp({
+  email,
+  password,
+  options: {
+    data: {
+      nome_empresa: nomeDaEmpresa,
+      telefone: telefone
+    }
+  }
+})
       if (errNeg) return this.suMsg('Conta criada, mas o negócio não foi registrado: ' + errNeg.message);
       await iniciarSessao();
     } else {
