@@ -920,7 +920,18 @@
     </div>
 
     <!-- Faixa verde profundo no topo (#1A5C2D) -->
-    <div class="top-strip" aria-hidden="true"></div>
+    <div id="confirm-email-modal" style="position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; padding: 20px;">
+  <div style="background: #1a1a1a; border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 300px; text-align: center;">
+    <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 16px;">
+      <span style="width: 10px; height: 10px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
+      <span style="width: 10px; height: 10px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
+      <span style="width: 10px; height: 10px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
+    </div>
+    <div style="font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 8px;">Confirme seu e-mail</div>
+    <p style="font-size: 13px; color: rgba(255,255,255,0.55); margin: 0 0 20px; line-height: 1.5;">Enviamos um link de confirmação para seu e-mail. Confirme para acessar o Nuvvo.</p>
+    <button type="button" class="touch-btn btn-primary-action" style="width: 100%;" onclick="Auth.fecharConfirmacao()">Entendi</button>
+  </div>
+</div><div class="top-strip" aria-hidden="true"></div>
 
     <!-- Topbar -->
     <header class="app-topbar">
