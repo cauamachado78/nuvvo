@@ -912,8 +912,8 @@
         <p style="font-size: 13px; color: rgba(255,255,255,0.5); margin: 0 0 16px;">Crie o caixa do seu negócio em segundos.</p>
         <input id="su-empresa" type="text" class="app-input" placeholder="Nome da empresa" style="width: 100%; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
         <input id="su-email" type="email" class="app-input" placeholder="E-mail" autocomplete="email" style="width: 100%; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
-        <input id="su-telefone" type="tel" class="app-input" placeholder="Telefone (11) 99999-9999" style="width: 100%; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
-        <input id="su-senha" type="password" class="app-input" placeholder="Senha (mín. 6 caracteres)" autocomplete="new-password" style="width: 100%; margin-bottom: 12px; padding: 12px 14px; font-size: 15px;">
+        <input id="su-telefone" type="tel" class="app-input" placeholder="Telefone (11) 99999-9999" oninput="Auth.mascaraTelefone(this)" style="width: 100%; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
+        <input id="su-senha" type="password" class="app-input" placeholder="Senha (mín. 8 caracteres)" autocomplete="new-password" style="width: 100%; margin-bottom: 12px; padding: 12px 14px; font-size: 15px;">
         <button type="button" class="touch-btn btn-primary-action" style="width: 100%;" onclick="Auth.salvarCadastro()">Criar conta</button>
         <p id="su-msg" style="font-size: 13px; color: var(--red-expense); min-height: 18px; margin-top: 10px; text-align: center;"></p>
       </div>
@@ -3282,7 +3282,7 @@ const Auth = {
     if (!empresa) return this.suMsg('Informe o nome da empresa.');
     if (!email) return this.suMsg('Informe o e-mail.');
     if (telefone.replace(/\D/g, '').length < 10) return this.suMsg('Informe um telefone válido com DDD.');
-    if (senha.length < 6) return this.suMsg('A senha precisa ter no mínimo 6 caracteres.');
+    if (senha.length < 8) return this.suMsg('A senha precisa ter no mínimo 8 caracteres.');
     const { data, error } = await sb.auth.signUp({ email, password: senha });
     if (error) return this.suMsg('Não foi possível criar a conta: ' + error.message);
     if (data.session) {
