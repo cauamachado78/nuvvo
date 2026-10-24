@@ -3263,7 +3263,12 @@ const Auth = {
     document.getElementById('signup-modal').style.display = 'flex';
     this.suMsg('');
   },
-  fecharCadastro() {
+fecharCadastro() {
+    document.getElementById('signup-modal').style.display = 'none';
+},
+fecharConfirmacao() {
+    document.getElementById('confirm-email-modal').style.display = 'none';
+},
     document.getElementById('signup-modal').style.display = 'none';
   },
   async entrar() {
@@ -3295,7 +3300,7 @@ const Auth = {
       await iniciarSessao();
     } else {
       this.fecharCadastro();
-      this.msg('Conta criada. Confirme o e-mail antes de entrar.');
+      document.getElementById('confirm-email-modal').style.display = 'flex';
     }
   },
   async sair() {
@@ -3318,16 +3323,20 @@ async function iniciarSessao() {
 }
 
 async function carregarDados() {
-  const { data: negs, error: e1 } = await sb.from('negocios').select('id').eq('user_id', userId).limit(1);
+  const { data: negs, error: e1 } = await sb.from('negocios').select('id, nome').eq('user_id', userId).limit(1)
   if (e1) return Auth.msg('Erro ao carregar: ' + e1.message);
   if (negs && negs.length) {
     negocioId = negs[0].id;
   } else {
+    
     const { data: novo, error } = await sb.from('negocios').insert({ user_id: userId, nome: 'Meu negócio' }).select('id').single();
     if (error) return Auth.msg('Erro ao criar negócio: ' + error.message);
     negocioId = novo.id;
   }
-
+let nomeNegocio = 'Meu negócio';
+if (negs && negs.length && negs[0].nome) nomeNegocio = negs[0].nome;
+const wEl = document.querySelector('.nuvvo-wordmark');
+if (wEl) wEl.textContent = nomeNegocio;
   const { data: lans, error: e2 } = await sb.from('lancamentos').select('*')
     .eq('negocio_id', negocioId).order('data', { ascending: false }).order('hora', { ascending: false });
   if (e2) return Auth.msg('Erro ao carregar lançamentos: ' + e2.message);
