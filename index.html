@@ -2055,7 +2055,7 @@
         this.lancamentos = [];
       },
 
-      updateDatesAndGreeting() {
+      async updateDatesAndGreeting() {
         const now = new Date();
 
         const hour = now.getHours();
@@ -2065,8 +2065,39 @@
         } else if (hour >= 18 || hour < 5) {
           greeting = 'Boa noite';
         }
+
+        // Busca o nome da empresa do usuário logado
+        let nomeEmpresa = '';
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+
+          if (user) {
+            // 1ª tentativa: nome salvo no metadata do usuário (no cadastro)
+            nomeEmpresa =
+              user.user_metadata?.nome_empresa ||
+              user.user_metadata?.name ||
+              '';
+
+            // 2ª tentativa: nome salvo na tabela profiles
+            if (!nomeEmpresa) {
+              const { data: perfil } = await supabase
+                .from('profiles')
+                .select('nome_empresa')
+                .eq('id', user.id)
+                .single();
+              nomeEmpresa = perfil?.nome_empresa || '';
+            }
+          }
+        } catch (e) {
+          console.error('Erro ao buscar nome da empresa:', e);
+        }
+
         const titleEl = document.getElementById('home-title');
-        if (titleEl) titleEl.textContent = `${greeting}, Ana`;
+        if (titleEl) {
+          titleEl.textContent = nomeEmpresa
+            ? `${greeting}, ${nomeEmpresa}`
+            : greeting;
+        }
 
         const dateEl = document.getElementById('home-current-date');
         if (dateEl) {
