@@ -3263,13 +3263,11 @@ const Auth = {
     document.getElementById('signup-modal').style.display = 'flex';
     this.suMsg('');
   },
-fecharCadastro() {
+  fecharCadastro() {
     document.getElementById('signup-modal').style.display = 'none';
-},
-fecharConfirmacao() {
+  },
+  fecharConfirmacao() {
     document.getElementById('confirm-email-modal').style.display = 'none';
-},
-    document.getElementById('signup-modal').style.display = 'none';
   },
   async entrar() {
     const email = document.getElementById('auth-email').value.trim();
