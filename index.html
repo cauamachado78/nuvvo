@@ -995,17 +995,38 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
 </head>
 <body>
 
-    <!-- Mockup Phone Device -->
-  <main class="device-viewport" role="region" aria-label="Aplicativo de controle financeiro">
-
     <div id="auth-view" class="splash-overlay active" style="z-index: 200;" role="dialog" aria-modal="true" aria-label="Entrar no Nuvvo">
+      <div style="width: 64px; height: 64px; background: #22c55e; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; box-shadow: 0 4px 16px rgba(34, 197, 94, 0.25);">
+        <span style="color: #0d0d0d; font-weight: 800; font-size: 30px; letter-spacing: -1px;">W</span>
+      </div>
       <div class="splash-wordmark">nuvvo</div>
       <p class="splash-tagline">Entre para acessar o caixa do seu negócio.</p>
       <input id="auth-email" type="email" class="app-input" placeholder="E-mail" autocomplete="email" style="width: 100%; max-width: 250px; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
       <input id="auth-password" type="password" class="app-input" placeholder="Senha" autocomplete="current-password" style="width: 100%; max-width: 250px; margin-bottom: 12px; padding: 12px 14px; font-size: 15px;">
       <button type="button" class="touch-btn btn-primary-action" style="max-width: 250px;" onclick="Auth.entrar()">Entrar</button>
-      <button type="button" class="touch-btn btn-subtle" style="max-width: 250px; margin-top: 8px;" onclick="Auth.criarConta()">Criar conta</button>
+      <div style="display: flex; align-items: center; gap: 10px; max-width: 250px; margin: 14px auto 6px;">
+        <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.12);"></div>
+        <span style="font-size: 12px; color: rgba(255,255,255,0.45); letter-spacing: 1px;">OU</span>
+        <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.12);"></div>
+      </div>
+      <button type="button" class="touch-btn btn-subtle" style="max-width: 150px; margin-top: 6px; padding: 9px 18px; font-size: 13px;" onclick="Auth.abrirCadastro()">Criar conta</button>
       <p id="auth-msg" style="font-size: 13px; color: var(--red-expense); min-height: 20px; margin-top: 12px; text-align: center;"></p>
+    </div>
+
+    <div id="signup-modal" style="position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; padding: 20px;">
+      <div style="background: #1a1a1a; border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 24px; width: 100%; max-width: 320px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <div style="font-size: 18px; font-weight: 600; color: #fff;">Criar conta</div>
+          <button type="button" onclick="Auth.fecharCadastro()" style="background: none; border: none; color: rgba(255,255,255,0.5); font-size: 22px; cursor: pointer; padding: 4px 8px;">&times;</button>
+        </div>
+        <p style="font-size: 13px; color: rgba(255,255,255,0.5); margin: 0 0 16px;">Crie o caixa do seu negócio em segundos.</p>
+        <input id="su-empresa" type="text" class="app-input" placeholder="Nome da empresa" style="width: 100%; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
+        <input id="su-email" type="email" class="app-input" placeholder="E-mail" autocomplete="email" style="width: 100%; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
+        <input id="su-telefone" type="tel" class="app-input" placeholder="Telefone (11) 99999-9999" style="width: 100%; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
+        <input id="su-senha" type="password" class="app-input" placeholder="Senha (mín. 6 caracteres)" autocomplete="new-password" style="width: 100%; margin-bottom: 12px; padding: 12px 14px; font-size: 15px;">
+        <button type="button" class="touch-btn btn-primary-action" style="width: 100%;" onclick="Auth.salvarCadastro()">Criar conta</button>
+        <p id="su-msg" style="font-size: 13px; color: var(--red-expense); min-height: 18px; margin-top: 10px; text-align: center;"></p>
+      </div>
     </div>
 
     <!-- Faixa verde profundo no topo (#1A5C2D) -->
@@ -3340,6 +3361,21 @@ let negocioId = null;
 
 const Auth = {
   msg(texto) { document.getElementById('auth-msg').textContent = texto; },
+  suMsg(texto) { document.getElementById('su-msg').textContent = texto; },
+  mascaraTelefone(el) {
+    let v = el.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 7) v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+    else if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+    else if (v.length > 0) v = `(${v}`;
+    el.value = v;
+  },
+  abrirCadastro() {
+    document.getElementById('signup-modal').style.display = 'flex';
+    this.suMsg('');
+  },
+  fecharCadastro() {
+    document.getElementById('signup-modal').style.display = 'none';
+  },
   async entrar() {
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value;
@@ -3348,14 +3384,29 @@ const Auth = {
     if (error) return this.msg('Não foi possível entrar: ' + error.message);
     await iniciarSessao();
   },
-  async criarConta() {
-    const email = document.getElementById('auth-email').value.trim();
-    const password = document.getElementById('auth-password').value;
-    if (!email || !password) return this.msg('Informe e-mail e senha.');
-    const { data, error } = await sb.auth.signUp({ email, password });
-    if (error) return this.msg('Não foi possível criar a conta: ' + error.message);
-    if (data.session) await iniciarSessao();
-    else this.msg('Conta criada. Confirme o e-mail antes de entrar.');
+  async salvarCadastro() {
+    const empresa = document.getElementById('su-empresa').value.trim();
+    const email = document.getElementById('su-email').value.trim();
+    const telefone = document.getElementById('su-telefone').value.trim();
+    const senha = document.getElementById('su-senha').value;
+    if (!empresa) return this.suMsg('Informe o nome da empresa.');
+    if (!email) return this.suMsg('Informe o e-mail.');
+    if (telefone.replace(/\D/g, '').length < 10) return this.suMsg('Informe um telefone válido com DDD.');
+    if (senha.length < 6) return this.suMsg('A senha precisa ter no mínimo 6 caracteres.');
+    const { data, error } = await sb.auth.signUp({ email, password: senha });
+    if (error) return this.suMsg('Não foi possível criar a conta: ' + error.message);
+    if (data.session) {
+      const { error: errNeg } = await sb.from('negocios').insert({
+        user_id: data.user.id,
+        nome: empresa,
+        telefone: telefone
+      });
+      if (errNeg) return this.suMsg('Conta criada, mas o negócio não foi registrado: ' + errNeg.message);
+      await iniciarSessao();
+    } else {
+      this.fecharCadastro();
+      this.msg('Conta criada. Confirme o e-mail antes de entrar.');
+    }
   },
   async sair() {
     await sb.auth.signOut();
