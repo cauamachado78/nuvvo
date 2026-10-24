@@ -3511,5 +3511,13 @@ App.confirmClose = (function (orig) {
 
 document.addEventListener('DOMContentLoaded', iniciarSessao);
 </script>
-</body>
+<script>
+setInterval(function(){
+  var s=document.getElementById('splash-view');
+  var a=document.getElementById('auth-view');
+  if(s && a && getComputedStyle(a).display==='none' && getComputedStyle(s).display!=='none'){
+    s.style.display='none';
+  }
+},500);
+</script></body>
 </html>
