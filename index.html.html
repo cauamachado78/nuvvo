@@ -1,0 +1,3447 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Nuvvo · Verde de Caixa</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap">
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css">
+  <style>
+/* Skip artifact shell — fixed styles served beside every artifact.
+   Complements basecoat; artifacts override --accent for their own identity. */
+:root {
+  color-scheme: light dark;
+  --accent: #2563eb;
+  --accent-contrast: #ffffff;
+  --accent-text: color-mix(in srgb, var(--accent) 72%, #000);
+  --bg: #f8f9fb;
+  --surface: #ffffff;
+  --text: #14171f;
+  --text-muted: #5b6472;
+  --border: rgba(20, 23, 31, 0.10);
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(20, 23, 31, 0.08);
+  --space: 16px;
+}
+/* Theme resolution. Without data-theme the viewer's system preference decides,
+   as it always did. With it, the artifact's own choice wins in BOTH directions:
+   a page that hardcodes one palette must not be handed the opposite set of
+   tokens by the machine it happens to be opened on. The dark values appear
+   twice because a media query cannot be folded into a selector list.
+   The attribute sits inside :where() so these blocks keep the specificity of a
+   bare :root — the page's own <style> is linked after this file and must go on
+   overriding any token it wants, exactly as it could before. */
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    --accent-text: color-mix(in srgb, var(--accent) 78%, #fff);
+    --bg: #101318;
+    --surface: #181c23;
+    --text: #eef1f6;
+    --text-muted: #9aa4b2;
+    --border: rgba(238, 241, 246, 0.12);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+}
+:root:where([data-theme="dark"]) {
+  color-scheme: dark;
+  --accent-text: color-mix(in srgb, var(--accent) 78%, #fff);
+  --bg: #101318;
+  --surface: #181c23;
+  --text: #eef1f6;
+  --text-muted: #9aa4b2;
+  --border: rgba(238, 241, 246, 0.12);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+:root:where([data-theme="light"]) { color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; display: block; }
+
+.shell-container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+.shell-section { padding: calc(var(--space) * 2) 0; }
+.shell-grid { display: grid; gap: var(--space); grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.shell-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: var(--space); }
+.shell-footer { padding: 24px 0 40px; color: var(--text-muted); font-size: 13px; }
+
+.shell-hero { padding: calc(var(--space) * 3) 0 calc(var(--space) * 2); }
+.shell-hero h1 { font-size: clamp(26px, 4vw, 40px); line-height: 1.15; margin: 0 0 10px; text-wrap: balance; }
+.shell-hero p { color: var(--text-muted); max-width: 60ch; margin: 0; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space);
+}
+
+.kpi { display: flex; flex-direction: column; gap: 4px; }
+.kpi .kpi-value { font-size: 28px; font-weight: 650; line-height: 1.1; }
+.kpi .kpi-label { font-size: 13px; color: var(--text-muted); }
+.kpi .kpi-delta { font-size: 12.5px; font-weight: 600; }
+.kpi .kpi-delta.up { color: #0a8f3c; }
+.kpi .kpi-delta.down { color: #cf3131; }
+
+table.shell-table { border-collapse: collapse; width: 100%; font-size: 14px; }
+table.shell-table th {
+  text-align: left; font-size: 11.5px; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--text-muted); font-weight: 600;
+}
+table.shell-table th, table.shell-table td { padding: 9px 12px 9px 0; border-bottom: 1px solid var(--border); }
+table.shell-table td.num, table.shell-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+
+.chart-box { width: 100%; min-height: 220px; }
+.chart-box svg { width: 100%; height: auto; display: block; }
+
+.muted { color: var(--text-muted); }
+.accent { color: var(--accent-text); }
+.shell-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent-text);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .shell-fade { animation: shell-fade 400ms ease both; }
+  @keyframes shell-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+
+</style>
+  
+
+  <style>
+    /* 1. TEMA ESCURO (PADRÃO OBRIGATÓRIO) */
+    :root, [data-theme="dark"] {
+      --bg: #0C0E0C;
+      --surface: #161A17;
+      --surface-btn-sec: #1D201E;
+      --surface-field: #1D201E;
+      --border: #262B27;
+      --divider: #262B27;
+      --green-primary: #228B45;
+      --green-pressed: #1A5C2D;
+      --green-deep: #1A5C2D;
+      --green-text: #228B45;
+      --green-subtle: #16261B;
+      --red-expense: #D9534F;
+      --red-pressed: #B53E3B;
+      --red-subtle: #291817;
+      --text-main: #F2F0EA;
+      --text-muted: #9AA39C;
+      --desktop-bg: #050705;
+      --radius-card: 18px;
+      --font-serif: 'Fraunces', Georgia, serif;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --accent: #228B45;
+      --accent-contrast: #F2F0EA;
+    }
+
+    /* 2. TEMA CLARO (ALTERNATIVO PARA COMPARAÇÃO) */
+    [data-theme="light"] {
+      --bg: #F6F5F1;
+      --surface: #FFFFFF;
+      --surface-btn-sec: #EFECE6;
+      --surface-field: #EFECE6;
+      --border: #E4E2DA;
+      --divider: #E4E2DA;
+      --green-primary: #228B45;
+      --green-pressed: #1A5C2D;
+      --green-deep: #1A5C2D;
+      --green-text: #1A7A3E;
+      --green-subtle: #E8F5EC;
+      --red-expense: #C0392B;
+      --red-pressed: #962D22;
+      --red-subtle: #FBEBE9;
+      --text-main: #0C0E0C;
+      --text-muted: #6B7370;
+      --desktop-bg: #ECEAE4;
+      --accent: #1A7A3E;
+      --accent-contrast: #FFFFFF;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: none !important;
+      text-shadow: none !important;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--desktop-bg);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    /* Desktop Mockup Frame */
+    .device-viewport {
+      width: 100%;
+      max-width: 412px;
+      height: 100vh;
+      max-height: 880px;
+      background-color: var(--bg);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    @media (min-width: 500px) {
+      body {
+        padding: 24px;
+      }
+      .device-viewport {
+        border-radius: 32px;
+        height: 852px;
+      }
+    }
+
+    /* Faixa verde profundo no topo (#1A5C2D) */
+    .top-strip {
+      height: 4px;
+      width: 100%;
+      background: var(--green-deep);
+      flex-shrink: 0;
+      z-index: 25;
+    }
+
+    /* App Header */
+    .app-topbar {
+      padding: 12px 18px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--divider);
+      background: var(--bg);
+      z-index: 20;
+    }
+
+    .brand-header-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-header-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: none;
+      border: none;
+      padding: 2px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.15s ease;
+    }
+    .brand-header-btn:hover {
+      opacity: 0.88;
+    }
+    .brand-header-btn:focus-visible {
+      outline: 2px solid var(--green-primary);
+      outline-offset: 2px;
+    }
+
+    /* Wordmark Nuvvo: serif Fraunces, weight 600, tracking -0.02em, lowercase */
+    .nuvvo-wordmark {
+      font-family: var(--font-serif);
+      font-weight: 600;
+      font-size: 22px;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      line-height: 1;
+      display: inline-flex;
+      align-items: baseline;
+      user-select: none;
+    }
+
+    /* Icon box: radius 10px, green #228B45, stroke #0C0E0C */
+    .nuvvo-icon-box {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+      border-radius: 10px;
+      display: block;
+    }
+
+    /* Theme Switcher Button */
+    .theme-toggle-btn {
+      background: var(--surface-btn-sec);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .theme-toggle-btn:hover {
+      border-color: var(--green-primary);
+    }
+    .theme-toggle-btn:active {
+      background: var(--border);
+    }
+    .theme-toggle-btn:focus-visible {
+      outline: 2px solid var(--green-primary);
+      outline-offset: 2px;
+    }
+
+    .status-clock {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    /* Splash Screen Overlay */
+    .splash-overlay {
+      position: absolute;
+      inset: 0;
+      background-color: var(--bg);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 36px 28px;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.98);
+      transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+    .splash-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+    .splash-icon-box {
+      width: 92px;
+      height: 92px;
+      border-radius: 26px;
+      margin-bottom: 20px;
+    }
+    .splash-wordmark {
+      font-family: var(--font-serif);
+      font-weight: 600;
+      font-size: 40px;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+    .splash-tagline {
+      font-size: 14px;
+      line-height: 1.45;
+      color: var(--text-muted);
+      max-width: 250px;
+      margin: 0 auto 32px;
+      font-family: var(--font-sans);
+    }
+    .splash-dismiss-btn {
+      width: 100%;
+      max-width: 250px;
+    }
+
+    /* Screen Host */
+    .screen-host {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      position: relative;
+      padding-bottom: 96px;
+      scrollbar-width: none;
+    }
+    .screen-host::-webkit-scrollbar {
+      display: none;
+    }
+
+    .screen {
+      display: none;
+      padding: 16px 18px 24px;
+      animation: fadeIn 0.16s ease-out;
+    }
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Typography in Work Screens: purely Inter/sans-serif */
+    .ui-title-lg {
+      font-family: var(--font-sans);
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      margin: 0;
+    }
+    .ui-title-md {
+      font-family: var(--font-sans);
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      color: var(--text-main);
+      margin: 0;
+    }
+    .ui-label-micro {
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+    .ui-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    /* Monetary displays: 30-34px, 600, tabular-nums */
+    .money-hero {
+      font-family: var(--font-sans);
+      font-size: 32px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.15;
+    }
+
+    /* Card System */
+    .paper-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 18px;
+    }
+
+    /* Buttons (min-height 56px, generous touch targets) */
+    .touch-btn {
+      min-height: 56px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      width: 100%;
+      text-decoration: none;
+      padding: 0 18px;
+      font-family: var(--font-sans);
+      transition: background-color 0.12s ease, transform 0.1s ease, border-color 0.12s ease;
+    }
+    .touch-btn:active {
+      transform: scale(0.985);
+    }
+    .touch-btn:focus-visible {
+      outline: 2px solid var(--green-primary);
+      outline-offset: 2px;
+    }
+
+    /* Botões específicos da paleta */
+    /* 1. Registrar Entrada: Verde Principal #228B45 */
+    .btn-action-income {
+      background: var(--green-primary);
+      color: #FFFFFF;
+      border: 1px solid var(--green-primary);
+    }
+    .btn-action-income:active {
+      background: var(--green-pressed);
+      border-color: var(--green-pressed);
+    }
+
+    /* 2. Registrar Despesa: Vermelho #D9534F */
+    .btn-action-expense {
+      background: var(--red-expense);
+      color: #FFFFFF;
+      border: 1px solid var(--red-expense);
+    }
+    .btn-action-expense:active {
+      background: var(--red-pressed);
+      border-color: var(--red-pressed);
+    }
+
+    /* 3. Fechar Caixa: Verde Profundo #1A5C2D com maior peso visual */
+    .btn-action-close {
+      background: var(--green-deep);
+      color: #F2F0EA;
+      border: 1.5px solid #2B7A42;
+      min-height: 60px;
+      font-size: 16px;
+      letter-spacing: 0.01em;
+    }
+    .btn-action-close:active {
+      background: #134522;
+      border-color: #1A5C2D;
+    }
+
+    /* Ação padrão (Salvar / Confirmar) */
+    .btn-primary-action {
+      background: var(--green-primary);
+      color: #FFFFFF;
+      border: 1px solid var(--green-primary);
+    }
+    .btn-primary-action:active {
+      background: var(--green-pressed);
+      border-color: var(--green-pressed);
+    }
+
+    /* Secondary action buttons e campos (#1D201E) */
+    .btn-secondary-surface {
+      background: var(--surface-btn-sec);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary-surface:hover {
+      border-color: #3A423C;
+    }
+    .btn-secondary-surface:active {
+      background: var(--green-pressed);
+      color: #FFFFFF;
+    }
+
+    .btn-subtle {
+      background: var(--surface-btn-sec);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+    .btn-subtle:active {
+      background: var(--border);
+    }
+
+    /* Colors */
+    .text-green {
+      color: var(--green-text);
+      font-variant-numeric: tabular-nums;
+    }
+    .text-red {
+      color: var(--red-expense);
+      font-variant-numeric: tabular-nums;
+    }
+    .text-main {
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Form Inputs (#1D201E no tema escuro) */
+    .app-input {
+      background: var(--surface-field);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      transition: border-color 0.15s;
+    }
+    .app-input:focus {
+      outline: none;
+      border-color: var(--green-primary);
+    }
+    .app-input::placeholder {
+      color: var(--text-muted);
+      opacity: 0.8;
+    }
+
+    /* Value Display in Entry */
+    .amount-display {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px 16px;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .amount-value {
+      font-size: 34px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Numeric Pad */
+    .numpad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .numpad-key {
+      min-height: 54px;
+      background: var(--surface-btn-sec);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-variant-numeric: tabular-nums;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .numpad-key:active {
+      background: var(--border);
+    }
+    .numpad-key.key-action {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    /* Category Chips */
+    .chip-group {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin: 10px 0 14px;
+    }
+    .cat-chip {
+      min-height: 44px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface-btn-sec);
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      font-family: var(--font-sans);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .cat-chip.selected {
+      border-color: var(--green-primary);
+      background: var(--surface);
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    /* Movements list item */
+    .mov-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--divider);
+    }
+    .mov-item:last-child {
+      border-bottom: none;
+    }
+    .mov-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg);
+      border-top: 1px solid var(--divider);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      height: 70px;
+      z-index: 30;
+      padding: 6px 10px 8px;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      font-size: 12px;
+      font-weight: 500;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      border-radius: 10px;
+      transition: color 0.15s;
+    }
+    .nav-item.active {
+      color: var(--green-text);
+      font-weight: 600;
+    }
+    .nav-item svg {
+      stroke-width: 2;
+    }
+
+    /* Toast Notification */
+    .toast-msg {
+      position: absolute;
+      top: 56px;
+      left: 18px;
+      right: 18px;
+      background: var(--surface);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      z-index: 50;
+      transform: translateY(-80px);
+      opacity: 0;
+      transition: transform 0.22s cubic-bezier(0.18, 0.89, 0.32, 1.28), opacity 0.18s ease;
+      pointer-events: none;
+    }
+    .toast-msg.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Horizontal Bar Chart for Resumo */
+    .bar-row {
+      margin-bottom: 16px;
+    }
+    .bar-label-group {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+    .bar-track {
+      height: 18px;
+      background: var(--surface-btn-sec);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.4s ease;
+    }
+
+    /* Subtitle and footer */
+    .demo-footer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 14px 16px 8px;
+      border-top: 1px dashed var(--divider);
+      margin-top: 24px;
+      line-height: 1.4;
+    }
+    .proto-legend {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* Period Selector Button */
+    .period-selector-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-btn-sec);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      min-height: 40px;
+      padding: 8px 14px;
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 500;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      margin-top: 10px;
+      transition: border-color 0.15s, background-color 0.15s;
+    }
+    .period-selector-btn:hover {
+      border-color: var(--green-primary);
+    }
+    .period-selector-btn:focus-visible {
+      outline: 2px solid var(--green-primary);
+      outline-offset: 2px;
+    }
+
+    /* Period Modal Bottom Sheet */
+    .period-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      z-index: 80;
+      display: none;
+      align-items: flex-end;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .period-modal-backdrop.open {
+      display: flex;
+      opacity: 1;
+    }
+    .period-sheet {
+      width: 100%;
+      max-height: 90%;
+      background: var(--surface);
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      border: 1px solid var(--border);
+      border-bottom: none;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: translateY(100%);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .period-modal-backdrop.open .period-sheet {
+      transform: translateY(0);
+    }
+    .sheet-header {
+      padding: 16px 18px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--divider);
+      flex-shrink: 0;
+    }
+    .sheet-body {
+      padding: 16px 18px;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    .sheet-body::-webkit-scrollbar {
+      display: none;
+    }
+    .sheet-footer {
+      padding: 14px 18px 16px;
+      border-top: 1px solid var(--divider);
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+      background: var(--surface);
+    }
+
+    /* Option items inside sheet */
+    .period-options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .period-opt-btn {
+      min-height: 44px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface-btn-sec);
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      font-family: var(--font-sans);
+      text-align: left;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .period-opt-btn:hover {
+      border-color: #3A423C;
+    }
+    .period-opt-btn.selected {
+      border-color: var(--green-primary);
+      background: var(--surface);
+      color: var(--text-main);
+      font-weight: 600;
+    }
+    .period-opt-btn:focus-visible {
+      outline: 2px solid var(--green-primary);
+      outline-offset: 1px;
+    }
+
+    /* Calendar in Sheet */
+    .cal-container {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--divider);
+    }
+    .cal-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .cal-nav-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface-btn-sec);
+      color: var(--text-main);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .cal-nav-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+    }
+    .cal-weekday {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 4px 0 8px;
+      text-transform: uppercase;
+    }
+    .cal-day-cell {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-family: var(--font-sans);
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-main);
+      cursor: pointer;
+      font-variant-numeric: tabular-nums;
+      padding: 0;
+    }
+    .cal-day-cell.other-month {
+      color: var(--text-muted);
+      opacity: 0.3;
+      cursor: default;
+      pointer-events: none;
+    }
+    .cal-day-cell.disabled {
+      color: var(--text-muted);
+      opacity: 0.3;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .cal-day-cell.in-range {
+      background: var(--green-subtle);
+      border-radius: 0;
+    }
+    .cal-day-cell.range-start {
+      background: var(--green-primary);
+      color: #FFFFFF;
+      font-weight: 600;
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+    }
+    .cal-day-cell.range-end {
+      background: var(--green-primary);
+      color: #FFFFFF;
+      font-weight: 600;
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+    .cal-day-cell.range-single {
+      background: var(--green-primary);
+      color: #FFFFFF;
+      font-weight: 600;
+      border-radius: 8px;
+    }
+    .cal-day-cell:focus-visible {
+      outline: 2px solid var(--green-primary);
+      outline-offset: -2px;
+    }
+    </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <!-- Mockup Phone Device -->
+  <main class="device-viewport" role="region" aria-label="Aplicativo de controle financeiro">
+
+    <div id="auth-view" class="splash-overlay active" style="z-index: 200;" role="dialog" aria-modal="true" aria-label="Entrar no Nuvvo">
+      <div class="splash-wordmark">nuvvo</div>
+      <p class="splash-tagline">Entre para acessar o caixa do seu negócio.</p>
+      <input id="auth-email" type="email" class="app-input" placeholder="E-mail" autocomplete="email" style="width: 100%; max-width: 250px; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
+      <input id="auth-password" type="password" class="app-input" placeholder="Senha" autocomplete="current-password" style="width: 100%; max-width: 250px; margin-bottom: 12px; padding: 12px 14px; font-size: 15px;">
+      <button type="button" class="touch-btn btn-primary-action" style="max-width: 250px;" onclick="Auth.entrar()">Entrar</button>
+      <button type="button" class="touch-btn btn-subtle" style="max-width: 250px; margin-top: 8px;" onclick="Auth.criarConta()">Criar conta</button>
+      <p id="auth-msg" style="font-size: 13px; color: var(--red-expense); min-height: 20px; margin-top: 12px; text-align: center;"></p>
+    </div>
+
+    <!-- Faixa verde profundo no topo (#1A5C2D) -->
+    <div class="top-strip" aria-hidden="true"></div>
+
+    <!-- Topbar -->
+    <header class="app-topbar">
+      <div class="brand-header-group">
+        <button type="button" class="brand-header-btn" onclick="App.openSplash()" title="Abrir apresentação Nuvvo" aria-label="Abrir tela de abertura Nuvvo">
+          <svg class="nuvvo-icon-box" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="32" height="32" rx="10" fill="#228B45"/>
+            <path d="M7 11L12.5 22L18 11" stroke="#0C0E0C" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14 11L19.5 22L25 11" stroke="#0C0E0C" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nuvvo-wordmark">nuvvo</span>
+        </button>
+
+        <!-- Alternador discreto de tema (sol / lua) -->
+        <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" onclick="App.toggleTheme()" title="Alternar tema claro/escuro" aria-label="Alternar entre tema escuro e tema claro">
+          <svg id="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg id="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px;">
+  <div class="status-clock" id="top-date"></div>
+  <button type="button" onclick="Auth.sair()" style="background: none; border: 1px solid var(--border); color: var(--text-muted); border-radius: 8px; padding: 4px 10px; font-size: 12px; cursor: pointer;">Sair</button>
+</div>
+    </header>
+
+    <!-- Splash Screen (Tela de Abertura) -->
+    <div id="splash-view" class="splash-overlay active" role="dialog" aria-modal="true" aria-label="Abertura Nuvvo">
+      <svg class="splash-icon-box" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="32" height="32" rx="10" fill="#228B45"/>
+        <path d="M7 11L12.5 22L18 11" stroke="#0C0E0C" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M14 11L19.5 22L25 11" stroke="#0C0E0C" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="splash-wordmark">nuvvo</div>
+      <p class="splash-tagline">O dinheiro do seu negócio, explicado sem complicação.</p>
+      <button type="button" class="touch-btn btn-primary-action splash-dismiss-btn" onclick="App.closeSplash()">
+        <span>Entrar no app</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+
+    <!-- Toast Notice -->
+    <div id="app-toast" class="toast-msg" role="status" aria-live="polite">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      <span id="toast-text">Movimento registrado com sucesso!</span>
+    </div>
+
+    <!-- Scrollable Host -->
+    <div class="screen-host" id="screenHost">
+
+      <!-- ================= SCREEN 1: INÍCIO ================= -->
+      <section id="screen-home" class="screen active" aria-labelledby="home-title">
+        <div style="margin-bottom: 18px;">
+          <p class="ui-label" id="home-current-date" style="margin: 0 0 3px 0; text-transform: capitalize;"></p>
+          <h1 id="home-title" class="ui-title-lg"></h1>
+        </div>
+
+        <!-- Resumo de Hoje Card (Elemento Dominante) -->
+        <div class="paper-card" style="margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <span class="ui-label-micro">
+              Resumo de hoje
+            </span>
+            <span style="font-size: 11px; background: var(--surface-btn-sec); border: 1px solid var(--border); color: var(--text-muted); padding: 2px 8px; border-radius: 99px; font-weight: 500;">
+              Ao vivo
+            </span>
+          </div>
+
+          <!-- Saldo em verde grande (elemento dominante) -->
+          <div style="margin-bottom: 16px;">
+            <div class="ui-label" style="font-size: 12px; margin-bottom: 3px;">Saldo do dia</div>
+            <div id="home-balance" class="money-hero text-green"></div>
+          </div>
+
+          <!-- Entradas e despesas em duas colunas menores -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 14px; border-top: 1px solid var(--divider);">
+            <div>
+              <div class="ui-label" style="font-size: 12px; display: flex; align-items: center; gap: 5px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--green-text);"><polyline points="7 17 17 7 17 17"/><polyline points="7 7 17 7"/></svg>
+                Entradas
+              </div>
+              <div id="home-incomes" class="text-green" style="font-size: 17px; font-weight: 600; margin-top: 3px;"></div>
+            </div>
+            <div>
+              <div class="ui-label" style="font-size: 12px; display: flex; align-items: center; gap: 5px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--red-expense);"><polyline points="7 7 17 17 7 17"/><polyline points="17 7 17 17"/></svg>
+                Despesas
+              </div>
+              <div id="home-expenses" class="text-red" style="font-size: 17px; font-weight: 600; margin-top: 3px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Grandes Botões de Ação Obrigatórios:
+             1. Registrar entrada em verde #228B45
+             2. Registrar despesa em #D9534F
+             3. Fechar caixa em verde profundo #1A5C2D com maior peso visual -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button class="touch-btn btn-action-income" onclick="App.openEntryForm('income')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Registrar entrada</span>
+          </button>
+
+          <button class="touch-btn btn-action-expense" onclick="App.openEntryForm('expense')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Registrar despesa</span>
+          </button>
+
+          <!-- Maior peso visual: Verde profundo (#1A5C2D) -->
+          <button class="touch-btn btn-action-close" onclick="App.openCloseRegister()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>Fechar caixa</span>
+          </button>
+        </div>
+
+        <!-- Recent snippet -->
+        <div style="margin-top: 26px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
+            <h2 class="ui-title-md">Últimos lançamentos</h2>
+            <button onclick="App.navigate('movements')" style="background: none; border: none; color: var(--green-text); font-size: 13px; font-weight: 600; cursor: pointer;">Ver todos</button>
+          </div>
+          <div class="paper-card" style="padding: 4px 16px;" id="home-recent-list">
+            <!-- Filled via JS -->
+          </div>
+        </div>
+
+        <div class="demo-footer">
+          <div>Nuvvo · Seus dados ficam salvos em sua conta</div>
+          <span class="proto-legend">Alternador de tema: recurso só do protótipo, para comparação</span>
+        </div>
+      </section>
+
+      <!-- ================= SCREEN 2: REGISTRAR (ENTRADA / DESPESA) ================= -->
+      <section id="screen-entry" class="screen" aria-labelledby="entry-title">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <button class="touch-btn btn-subtle" style="min-height: 40px; width: 40px; padding: 0; border-radius: 10px;" onclick="App.navigate('home')" aria-label="Voltar para início">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <h1 id="entry-title" class="ui-title-md">Registrar Entrada</h1>
+          <div style="width: 40px;"></div>
+        </div>
+
+        <!-- 1. Display do valor (amount-display no topo) -->
+        <div class="amount-display">
+          <span class="ui-label" id="entry-amount-label" style="display: block; margin-bottom: 4px;">Valor</span>
+          <div id="entry-display-val" class="amount-value text-green">R$ 0,00</div>
+          <div id="entry-error-msg" style="display: none; font-size: 12px; color: var(--red-expense); margin-top: 6px; font-weight: 500;">Informe um valor maior que zero.</div>
+        </div>
+
+        <div id="entry-flow-container" style="display: flex; flex-direction: column;">
+          <!-- ENTRADA: 2. Forma de recebimento (opcional) -->
+          <div id="income-receipt-container" style="order: 2; display: none; margin-bottom: 14px;">
+            <span class="ui-label" style="font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Forma de recebimento (opcional)</span>
+            <div class="chip-group" style="grid-template-columns: repeat(4, 1fr); margin-top: 4px;" role="radiogroup" aria-label="Forma de recebimento (opcional)">
+              <button type="button" class="cat-chip" style="padding: 10px 4px; font-size: 13px;" onclick="App.selectFormaRecebimento('Dinheiro', this)" role="radio" aria-checked="false">Dinheiro</button>
+              <button type="button" class="cat-chip" style="padding: 10px 4px; font-size: 13px;" onclick="App.selectFormaRecebimento('Pix', this)" role="radio" aria-checked="false">Pix</button>
+              <button type="button" class="cat-chip" style="padding: 10px 4px; font-size: 13px;" onclick="App.selectFormaRecebimento('Cartão', this)" role="radio" aria-checked="false">Cartão</button>
+              <button type="button" class="cat-chip" style="padding: 10px 4px; font-size: 13px;" onclick="App.selectFormaRecebimento('Outros', this)" role="radio" aria-checked="false">Outros</button>
+            </div>
+          </div>
+
+          <!-- ENTRADA: 3. Observação (opcional) -->
+          <div id="income-obs-container" style="order: 3; display: none; margin: 0 0 14px;">
+            <label for="entry-obs-detalhe" class="ui-label" style="font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Observação (opcional)</label>
+            <input type="text" id="entry-obs-detalhe" class="app-input" placeholder="Detalhes adicionais..." style="width: 100%; font-size: 15px; padding: 12px 14px;">
+          </div>
+
+          <!-- DESPESA: 2. Categoria (campo compacto com seletor) -->
+          <div id="expense-cat-container" style="order: 10; display: none; margin-bottom: 8px;">
+            <label for="expense-cat-trigger" class="ui-label" style="font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Categoria da despesa <span style="color: var(--red-expense);">*</span></label>
+            <button type="button" id="expense-cat-trigger" class="app-input" onclick="App.openCategoryModal()" aria-haspopup="dialog" style="width: 100%; min-height: 44px; padding: 10px 14px; text-align: left; display: flex; align-items: center; justify-content: space-between; cursor: pointer; color: var(--text-muted); font-size: 14px;">
+              <span id="expense-cat-label">Selecionar categoria</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-muted); flex-shrink: 0;"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+          </div>
+
+          <!-- On-screen Numpad Compartilhado -->
+          <div class="numpad-grid" id="entry-shared-numpad" style="order: 20; margin-top: 4px; margin-bottom: 8px;">
+            <button type="button" class="numpad-key" onclick="App.keypadPress('1')">1</button>
+            <button type="button" class="numpad-key" onclick="App.keypadPress('2')">2</button>
+            <button type="button" class="numpad-key" onclick="App.keypadPress('3')">3</button>
+            <button type="button" class="numpad-key" onclick="App.keypadPress('4')">4</button>
+            <button type="button" class="numpad-key" onclick="App.keypadPress('5')">5</button>
+            <button type="button" class="numpad-key" onclick="App.keypadPress('6')">6</button>
+            <button type="button" class="numpad-key" onclick="App.keypadPress('7')">7</button>
+            <button type="button" class="numpad-key" onclick="App.keypadPress('8')">8</button>
+            <button type="button" class="numpad-key" onclick="App.keypadPress('9')">9</button>
+            <button type="button" class="numpad-key key-action" onclick="App.keypadClear()">C</button>
+            <button type="button" class="numpad-key" onclick="App.keypadPress('0')">0</button>
+            <button type="button" class="numpad-key key-action" onclick="App.keypadBackspace()" aria-label="Apagar último dígito">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+            </button>
+          </div>
+
+          <!-- DESPESA: 4. Forma de pagamento (obrigatória *) -->
+          <div id="expense-payment-container" style="order: 30; display: none; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+              <span class="ui-label" style="font-weight: 600; color: var(--text-main);">Forma de pagamento <span style="color: var(--red-expense);">*</span></span>
+              <span id="expense-payment-hint" style="font-size: 11px; color: var(--red-expense); display: none; font-weight: 500;">Obrigatório</span>
+            </div>
+            <div class="chip-group" style="grid-template-columns: repeat(4, 1fr); margin-top: 4px; margin-bottom: 4px;" role="radiogroup" aria-label="Forma de pagamento (obrigatória)">
+              <button type="button" class="cat-chip" style="padding: 8px 4px; font-size: 13px; min-height: 40px;" onclick="App.selectFormaPagamento('Dinheiro', this)" role="radio" aria-checked="false">Dinheiro</button>
+              <button type="button" class="cat-chip" style="padding: 8px 4px; font-size: 13px; min-height: 40px;" onclick="App.selectFormaPagamento('Pix', this)" role="radio" aria-checked="false">Pix</button>
+              <button type="button" class="cat-chip" style="padding: 8px 4px; font-size: 13px; min-height: 40px;" onclick="App.selectFormaPagamento('Cartão', this)" role="radio" aria-checked="false">Cartão</button>
+              <button type="button" class="cat-chip" style="padding: 8px 4px; font-size: 13px; min-height: 40px;" onclick="App.selectFormaPagamento('Outros', this)" role="radio" aria-checked="false">Outros</button>
+            </div>
+          </div>
+
+          <!-- DESPESA: 5. Descrição e Observação (compactos, uma linha cada) -->
+          <div id="expense-fields-container" style="order: 40; display: none; margin-bottom: 8px;">
+            <div style="margin-bottom: 6px;">
+              <label for="expense-desc-input" class="ui-label" style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 3px;">Descrição (opcional)</label>
+              <input type="text" id="expense-desc-input" class="app-input" placeholder="Ex.: Compra de embalagens" style="width: 100%; font-size: 13px; padding: 8px 12px; min-height: 38px;">
+            </div>
+            <div>
+              <label for="expense-obs-input" class="ui-label" style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 3px;">Observação (opcional)</label>
+              <input type="text" id="expense-obs-input" class="app-input" placeholder="Detalhes adicionais..." style="width: 100%; font-size: 13px; padding: 8px 12px; min-height: 38px;">
+            </div>
+          </div>
+
+          <!-- 6. Botões Salvar e Cancelar -->
+          <div id="entry-actions-container" style="order: 50; margin-top: 10px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 8px;">
+            <button id="entry-save-btn" class="touch-btn btn-primary-action" onclick="App.saveEntry()">
+              Salvar
+            </button>
+            <button type="button" class="touch-btn btn-subtle" onclick="App.navigate('home')">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SCREEN 3: FECHAR CAIXA ================= -->
+      <section id="screen-close" class="screen" aria-labelledby="close-title">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <button class="touch-btn btn-subtle" style="min-height: 40px; width: 40px; padding: 0; border-radius: 10px;" onclick="App.navigate('home')" aria-label="Voltar para início">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <h1 id="close-title" class="ui-title-md">Fechar Caixa</h1>
+          <div style="width: 40px;"></div>
+        </div>
+
+        <div id="close-form-view">
+          <!-- Aviso discreto quando já existe fechamento salvo na data -->
+          <div id="close-saved-notice" style="display: none; background: var(--green-subtle); border: 1px solid var(--green-primary); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: var(--green-text); font-weight: 500;">
+            Fechamento salvo em <span id="close-saved-time"></span>. Você pode atualizá-lo.
+          </div>
+
+          <p class="ui-label" style="margin: 0 0 14px 0;">
+            Conferência diária: <strong id="close-date-label" style="color: var(--text-main);"></strong>
+          </p>
+
+          <!-- Bloco A — Entradas por forma de recebimento -->
+          <div class="paper-card" style="margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <span class="ui-label" style="color: var(--green-text); font-weight: 600; font-size: 13px;">Entradas por forma</span>
+              <span class="ui-label-micro">Subtotais</span>
+            </div>
+            <div id="close-formas-list" style="display: flex; flex-direction: column; gap: 6px; font-size: 13px;">
+              <!-- Linhas preenchidas via JS -->
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 8px; margin-top: 8px; border-top: 1px dashed var(--divider);">
+              <strong style="font-size: 13px; color: var(--text-main);">Total de entradas</strong>
+              <strong id="close-in-val" class="text-green" style="font-size: 15px;">R$ 0,00</strong>
+            </div>
+          </div>
+
+          <!-- Bloco B — Despesas por categoria -->
+          <div class="paper-card" style="margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <span class="ui-label" style="color: var(--red-expense); font-weight: 600; font-size: 13px;">Despesas por categoria</span>
+              <span class="ui-label-micro">Subtotais</span>
+            </div>
+            <div id="close-cat-list" style="display: flex; flex-direction: column; gap: 6px; font-size: 13px;">
+              <!-- Linhas preenchidas via JS -->
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 8px; margin-top: 8px; border-top: 1px dashed var(--divider);">
+              <strong style="font-size: 13px; color: var(--text-main);">Total de despesas</strong>
+              <strong id="close-out-val" class="text-red" style="font-size: 15px;">R$ 0,00</strong>
+            </div>
+          </div>
+
+          <!-- Bloco C — Resumo financeiro do dia -->
+          <div class="paper-card" style="margin-bottom: 16px;">
+            <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: baseline; font-size: 13px;">
+              <span class="ui-label">Total de entradas</span>
+              <span id="close-resumo-in" class="text-green" style="font-weight: 600;">R$ 0,00</span>
+            </div>
+            <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: baseline; font-size: 13px;">
+              <span class="ui-label">Total de despesas</span>
+              <span id="close-resumo-out" class="text-red" style="font-weight: 600;">R$ 0,00</span>
+            </div>
+            <div style="background: var(--surface-btn-sec); border-radius: 12px; padding: 12px 14px; border: 1px dashed var(--border);">
+              <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <span class="ui-label" style="font-size: 13px; font-weight: 600; color: var(--text-main);">Resultado do dia</span>
+                <span class="ui-label" style="font-size: 11px;">Entradas menos despesas</span>
+              </div>
+              <div id="close-calc-result" class="text-green" style="font-size: 22px; font-weight: 600; margin-top: 4px;">R$ 0,00</div>
+            </div>
+          </div>
+
+          <!-- Bloco 2 — Dinheiro contado no caixa (opcional) -->
+          <div class="paper-card" style="margin-bottom: 16px;">
+            <label for="close-cash-val" class="ui-label" style="color: var(--text-main); font-weight: 500; display: block; margin-bottom: 6px;">
+              Dinheiro contado no caixa (opcional)
+            </label>
+            <input type="number" step="0.01" id="close-cash-val" class="app-input" placeholder="R$ 0,00" style="width: 100%; font-size: 16px; padding: 12px 14px; font-variant-numeric: tabular-nums;">
+          </div>
+
+          <!-- Bloco 3 — Observação (opcional) -->
+          <div class="paper-card" style="margin-bottom: 20px;">
+            <label for="close-obs" class="ui-label" style="color: var(--text-main); font-weight: 500; display: block; margin-bottom: 6px;">
+              Observação (opcional)
+            </label>
+            <input type="text" id="close-obs" class="app-input" placeholder="Ex.: Troco separado para amanhã" style="width: 100%; font-size: 14px; padding: 12px 14px;">
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button id="close-main-btn" class="touch-btn btn-primary-action" onclick="App.confirmClose()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="close-main-btn-label">Concluir fechamento</span>
+            </button>
+            <button type="button" class="touch-btn btn-subtle" onclick="App.navigate('home')">
+              Cancelar
+            </button>
+          </div>
+        </div>
+
+        <!-- Recibo / Confirmação do Fechamento -->
+        <div id="close-summary-view" style="display: none;">
+          <div class="paper-card" style="text-align: center; padding: 24px 18px; margin-bottom: 20px;">
+            <div style="width: 48px; height: 48px; background: var(--green-subtle); color: var(--green-text); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <h2 class="ui-title-md" style="margin-bottom: 4px;">Caixa Fechado</h2>
+            <p class="ui-label" style="margin: 0 0 18px 0;" id="sum-date-txt">Hoje • Finalizado com sucesso</p>
+
+            <!-- Detalhamento salvo A: Entradas por forma -->
+            <div style="text-align: left; background: var(--surface-btn-sec); border-radius: 12px; padding: 12px 14px; border: 1px solid var(--border); margin-bottom: 12px;">
+              <div style="font-size: 12px; font-weight: 600; color: var(--green-text); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em;">Entradas por forma de recebimento</div>
+              <div id="sum-formas-list" style="display: flex; flex-direction: column; gap: 5px; font-size: 13px; margin-bottom: 8px;"></div>
+              <div style="display: flex; justify-content: space-between; padding-top: 6px; border-top: 1px dashed var(--divider); font-size: 13px;">
+                <strong style="color: var(--text-main);">Total de entradas:</strong>
+                <strong id="sum-in" class="text-green"></strong>
+              </div>
+            </div>
+
+            <!-- Detalhamento salvo B: Despesas por categoria -->
+            <div style="text-align: left; background: var(--surface-btn-sec); border-radius: 12px; padding: 12px 14px; border: 1px solid var(--border); margin-bottom: 12px;">
+              <div style="font-size: 12px; font-weight: 600; color: var(--red-expense); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em;">Despesas por categoria</div>
+              <div id="sum-cat-list" style="display: flex; flex-direction: column; gap: 5px; font-size: 13px; margin-bottom: 8px;"></div>
+              <div style="display: flex; justify-content: space-between; padding-top: 6px; border-top: 1px dashed var(--divider); font-size: 13px;">
+                <strong style="color: var(--text-main);">Total de despesas:</strong>
+                <strong id="sum-out" class="text-red"></strong>
+              </div>
+            </div>
+
+            <!-- Detalhamento salvo C: Resumo financeiro -->
+            <div style="text-align: left; background: var(--surface-btn-sec); border-radius: 12px; padding: 12px 14px; border: 1px solid var(--border); margin-bottom: 14px;">
+              <div style="font-size: 12px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em;">Resumo financeiro</div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px;">
+                <span class="ui-label">Total de entradas:</span>
+                <strong id="sum-res-in" class="text-green"></strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
+                <span class="ui-label">Total de despesas:</span>
+                <strong id="sum-res-out" class="text-red"></strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 8px; border-top: 1px dashed var(--divider); font-size: 14px; margin-bottom: 6px;">
+                <div>
+                  <strong style="color: var(--text-main); display: block;">Resultado do dia:</strong>
+                  <span class="ui-label" style="font-size: 11px;">Entradas menos despesas</span>
+                </div>
+                <strong id="sum-res" class="text-green" style="font-size: 16px;"></strong>
+              </div>
+              <div id="sum-cash-row" style="display: none; justify-content: space-between; font-size: 13px; padding-top: 8px; border-top: 1px solid var(--divider);">
+                <span class="ui-label">Dinheiro contado no caixa:</span>
+                <strong id="sum-cash" class="text-main"></strong>
+              </div>
+            </div>
+
+            <p id="sum-obs-txt" style="font-size: 12px; color: var(--text-muted); font-style: italic; margin: 0;"></p>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button type="button" class="touch-btn btn-secondary-surface" onclick="App.openCloseRegister()">
+              Editar fechamento
+            </button>
+            <button type="button" class="touch-btn btn-primary-action" onclick="App.navigate('home')">
+              Voltar ao início
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SCREEN 4: MOVIMENTOS ================= -->
+      <section id="screen-movements" class="screen" aria-labelledby="mov-title">
+        <div style="margin-bottom: 16px;">
+          <h1 id="mov-title" class="ui-title-lg" style="margin-bottom: 12px;">Movimentos</h1>
+          
+          <!-- Filtro de período -->
+          <div style="display: flex; background: var(--surface-btn-sec); border: 1px solid var(--border); border-radius: 12px; padding: 3px; gap: 4px;" role="tablist">
+            <button class="touch-btn" id="filter-today" style="min-height: 38px; border-radius: 9px; font-size: 13px; font-weight: 600; flex: 1; padding: 0; background: var(--surface); color: var(--text-main); border: 1px solid var(--border);" onclick="App.setMovFilter('today')">
+              Hoje
+            </button>
+            <button class="touch-btn" id="filter-7days" style="min-height: 38px; border-radius: 9px; font-size: 13px; font-weight: 600; flex: 1; padding: 0; background: transparent; color: var(--text-muted); border: 1px solid transparent;" onclick="App.setMovFilter('7days')">
+              7 dias
+            </button>
+            <button class="touch-btn" id="filter-month" style="min-height: 38px; border-radius: 9px; font-size: 13px; font-weight: 600; flex: 1; padding: 0; background: transparent; color: var(--text-muted); border: 1px solid transparent;" onclick="App.setMovFilter('month')">
+              Mês
+            </button>
+          </div>
+        </div>
+
+        <!-- Lista Agrupada -->
+        <div id="movements-container">
+          <!-- Rendered via JS -->
+        </div>
+      </section>
+
+      <!-- ================= SCREEN 5: RESUMO ================= -->
+      <section id="screen-summary" class="screen" aria-labelledby="resumo-title">
+        <div style="margin-bottom: 18px;">
+          <h1 id="resumo-title" class="ui-title-lg" style="margin-bottom: 4px;">Resumo do Período</h1>
+          <p class="ui-label" style="margin: 0;">Visão simples e direta do seu negócio</p>
+          
+          <!-- Seletor de período compacto -->
+          <button type="button" class="period-selector-btn" id="period-selector-trigger" onclick="App.openPeriodModal()" aria-haspopup="dialog" aria-expanded="false">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span id="period-btn-label">Últimos 7 dias</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Total Líquido -->
+        <div class="paper-card" style="margin-bottom: 18px; text-align: center; padding: 22px 18px;">
+          <span class="ui-label-micro">
+            Saldo acumulado do período
+          </span>
+          <div id="res-period-saldo" class="money-hero text-green" style="margin: 8px 0 4px; font-size: 34px;"></div>
+          <span id="res-period-hint" class="ui-label" style="font-size: 12px;"></span>
+        </div>
+
+        <!-- Comparativo em Barras Horizontais Minimalistas -->
+        <div class="paper-card" style="margin-bottom: 18px;">
+          <h2 class="ui-title-md" style="font-size: 16px; margin-bottom: 16px;">Comparativo Entradas x Despesas</h2>
+
+          <!-- Entradas Bar -->
+          <div class="bar-row">
+            <div class="bar-label-group">
+              <span style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--green-primary);"></span>
+                Entradas
+              </span>
+              <span id="bar-in-txt" class="text-green"></span>
+            </div>
+            <div class="bar-track">
+              <div id="bar-in-fill" class="bar-fill" style="width: 0%; background: var(--green-primary);"></div>
+            </div>
+          </div>
+
+          <!-- Despesas Bar -->
+          <div class="bar-row" style="margin-bottom: 6px;">
+            <div class="bar-label-group">
+              <span style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--red-expense);"></span>
+                Despesas
+              </span>
+              <span id="bar-out-txt" class="text-red"></span>
+            </div>
+            <div class="bar-track">
+              <div id="bar-out-fill" class="bar-fill" style="width: 0%; background: var(--red-expense);"></div>
+            </div>
+          </div>
+
+          <div id="resumo-sobra-txt" style="font-size: 12px; color: var(--text-muted); margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--divider);"></div>
+        </div>
+
+        <!-- Bloco de Fechamentos Salvos -->
+        <div class="paper-card" style="margin-bottom: 18px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+            <h2 class="ui-title-md" style="font-size: 15px; margin: 0;">Fechamentos salvos</h2>
+            <span class="ui-label-micro" style="font-size: 11px;">Até 7 dias</span>
+          </div>
+          <div id="resumo-fechamentos-list">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <!-- Cartão de Dica Simples sem brilho neon, contraste limpo -->
+        <div class="paper-card" style="background: var(--surface-btn-sec); border-color: var(--border); display: flex; gap: 12px; align-items: flex-start;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--green-text); flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 2px;">Feche o caixa todos os dias</div>
+            <div class="ui-label" style="font-size: 12px; line-height: 1.45;">
+              Mesmo sem movimento, confirmar os valores diários evita esquecimentos e mantém seus números organizados.
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Modal de Detalhes do Lançamento (Somente Leitura) -->
+    <div id="mov-detail-backdrop" class="period-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="mov-detail-title" onclick="App.handleMovementModalBackdrop(event)">
+      <div class="period-sheet" style="max-height: 85%;">
+        <div class="sheet-header">
+          <h2 id="mov-detail-title" class="ui-title-md" style="font-size: 17px; margin: 0;">Detalhes do Lançamento</h2>
+          <button type="button" class="touch-btn btn-subtle" style="min-height: 36px; width: 36px; padding: 0; border-radius: 8px;" onclick="App.closeMovementDetails()" aria-label="Fechar detalhes do lançamento">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <div class="sheet-body" id="mov-detail-body">
+          <!-- Preenchido via JS -->
+        </div>
+
+        <div class="sheet-footer">
+          <button type="button" class="touch-btn btn-subtle" style="width: 100%;" onclick="App.closeMovementDetails()">
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Bottom Sheet do Seletor de Categorias de Despesa -->
+    <div id="cat-modal-backdrop" class="period-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="cat-modal-title" onclick="App.handleCategoryModalBackdrop(event)">
+      <div class="period-sheet" style="max-height: 82%;">
+        <div class="sheet-header">
+          <h2 id="cat-modal-title" class="ui-title-md" style="font-size: 17px; margin: 0;">Selecionar Categoria</h2>
+          <button type="button" class="touch-btn btn-subtle" style="min-height: 36px; width: 36px; padding: 0; border-radius: 8px;" onclick="App.closeCategoryModal()" aria-label="Fechar seletor de categorias">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <div class="sheet-body" style="padding: 14px 18px 20px;">
+          <div class="period-options-list" id="cat-modal-options-list" role="radiogroup" aria-label="Lista de categorias de despesa">
+            <!-- Gerado via JS com as 10 categorias -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Bottom Sheet do Seletor de Período -->
+    <div id="period-modal-backdrop" class="period-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="period-modal-title" onclick="App.handleBackdropClick(event)">
+      <div class="period-sheet" id="period-sheet">
+        <div class="sheet-header">
+          <h2 id="period-modal-title" class="ui-title-md" style="font-size: 17px; margin: 0;">Selecionar Período</h2>
+          <button type="button" class="touch-btn btn-subtle" style="min-height: 36px; width: 36px; padding: 0; border-radius: 8px;" onclick="App.closePeriodModal()" aria-label="Fechar modal de período">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <div class="sheet-body">
+          <!-- Lista de Opções Rápidas -->
+          <div class="period-options-list" id="period-options-container" role="radiogroup" aria-label="Opções de período">
+            <!-- Gerado via JS -->
+          </div>
+
+          <!-- Seção de Calendário (ativa ao selecionar Personalizado) -->
+          <div id="cal-custom-section" class="cal-container" style="display: none;">
+            <div style="margin-bottom: 10px;">
+              <span class="ui-label" style="font-size: 13px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 2px;">Escolha as datas</span>
+              <span id="cal-range-hint" class="ui-label" style="font-size: 12px; color: var(--text-muted);">Toque na data inicial e na final.</span>
+            </div>
+
+            <div class="cal-nav">
+              <button type="button" class="cal-nav-btn" onclick="App.calPrevMonth()" aria-label="Mês anterior">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+              <span id="cal-month-title" style="font-size: 14px; font-weight: 600; color: var(--text-main); text-transform: capitalize;"></span>
+              <button type="button" class="cal-nav-btn" id="cal-next-btn" onclick="App.calNextMonth()" aria-label="Próximo mês">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+            </div>
+
+            <div class="cal-grid" id="cal-weekdays-row" aria-hidden="true">
+              <div class="cal-weekday">Dom</div>
+              <div class="cal-weekday">Seg</div>
+              <div class="cal-weekday">Ter</div>
+              <div class="cal-weekday">Qua</div>
+              <div class="cal-weekday">Qui</div>
+              <div class="cal-weekday">Sex</div>
+              <div class="cal-weekday">Sáb</div>
+            </div>
+
+            <div class="cal-grid" id="cal-days-grid" role="grid" aria-label="Dias do mês">
+              <!-- Preenchido via JS -->
+            </div>
+
+            <div id="cal-error-msg" style="display: none; font-size: 12px; color: var(--red-expense); margin-top: 10px; font-weight: 500;">
+              A data final não pode ser anterior à inicial.
+            </div>
+          </div>
+        </div>
+
+        <div class="sheet-footer">
+          <button type="button" class="touch-btn btn-subtle" style="flex: 1;" onclick="App.closePeriodModal()">
+            Cancelar
+          </button>
+          <button type="button" class="touch-btn btn-primary-action" id="period-apply-btn" style="flex: 1;" onclick="App.applyPeriodModal()">
+            Aplicar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation Bar (3 items) -->
+    <nav class="bottom-nav" aria-label="Navegação principal">
+      <button class="nav-item active" id="btn-nav-home" onclick="App.navigate('home')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Início</span>
+      </button>
+
+      <button class="nav-item" id="btn-nav-movements" onclick="App.navigate('movements')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span>Movimentos</span>
+      </button>
+
+      <button class="nav-item" id="btn-nav-summary" onclick="App.navigate('summary')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+        <span>Resumo</span>
+      </button>
+    </nav>
+
+  </main>
+
+  <script>
+    // 1. FONTE ÚNICA DE VERDADE
+    const App = {
+      // Único array em memória com itens {id, tipo, valor, categoria, observacao, observacaoDetalhe, data, hora}
+      lancamentos: [],
+
+      // Fechamentos diários salvos em memória: { data, entradas, despesas, resultado, dinheiroContado, observacao, atualizadoEm }
+      fechamentos: [],
+
+      // Period state
+      periodo: {
+        tipo: '7days',
+        inicio: '',
+        fim: ''
+      },
+
+      // Draft state for modal
+      draftPeriodo: {
+        tipo: '7days',
+        inicio: '',
+        fim: ''
+      },
+      calPickingSecond: false,
+      calViewYear: 2025,
+      calViewMonth: 0,
+
+      // Entry state
+      entryMode: 'income', // 'income' | 'expense'
+      rawCents: 0,
+      selectedCategory: '',
+      selectedFormaRecebimento: '',
+      selectedFormaPagamento: '',
+      currentMovFilter: 'today',
+
+      // Função única de cálculo: entradas, despesas, saldo e percentualSobra
+      calcularTotais(lista) {
+        let entradas = 0;
+        let despesas = 0;
+        (lista || []).forEach(item => {
+          const val = Number(item.valor) || 0;
+          if (item.tipo === 'entrada') {
+            entradas += val;
+          } else if (item.tipo === 'despesa') {
+            despesas += val;
+          }
+        });
+
+        entradas = Math.round(entradas * 100) / 100;
+        despesas = Math.round(despesas * 100) / 100;
+        const saldo = Math.round((entradas - despesas) * 100) / 100;
+        const percentualSobra = entradas > 0 ? ((saldo / entradas) * 100) : null;
+
+        return { entradas, despesas, saldo, percentualSobra };
+      },
+
+      getTodayISODate() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      },
+
+      shiftISODate(isoStr, deltaDays) {
+        const [y, m, d] = isoStr.split('-').map(Number);
+        const dt = new Date(y, m - 1, d + deltaDays);
+        return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+      },
+
+      calculateRange(tipo, hoje) {
+        const [y, m, d] = hoje.split('-').map(Number);
+        if (tipo === 'today') {
+          return { inicio: hoje, fim: hoje };
+        } else if (tipo === 'yesterday') {
+          const ontem = this.shiftISODate(hoje, -1);
+          return { inicio: ontem, fim: ontem };
+        } else if (tipo === '7days') {
+          return { inicio: this.shiftISODate(hoje, -6), fim: hoje };
+        } else if (tipo === '30days') {
+          return { inicio: this.shiftISODate(hoje, -29), fim: hoje };
+        } else if (tipo === '3months') {
+          // Mesmo dia de hoje três meses antes, limitado ao último dia do mês de destino se necessário
+          const targetM = m - 3;
+          let targetYear = y;
+          let targetMonth = targetM;
+          if (targetMonth < 1) {
+            targetMonth += 12;
+            targetYear -= 1;
+          }
+          const maxDays = new Date(targetYear, targetMonth, 0).getDate();
+          const targetDay = Math.min(d, maxDays);
+          const inicio = `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`;
+          return { inicio, fim: hoje };
+        } else if (tipo === 'this_month') {
+          const inicio = `${y}-${String(m).padStart(2, '0')}-01`;
+          return { inicio, fim: hoje };
+        } else if (tipo === 'last_month') {
+          let prevY = y;
+          let prevM = m - 1;
+          if (prevM < 1) {
+            prevM = 12;
+            prevY -= 1;
+          }
+          const maxDays = new Date(prevY, prevM, 0).getDate();
+          const inicio = `${prevY}-${String(prevM).padStart(2, '0')}-01`;
+          const fim = `${prevY}-${String(prevM).padStart(2, '0')}-${String(maxDays).padStart(2, '0')}`;
+          return { inicio, fim };
+        }
+        return { inicio: hoje, fim: hoje };
+      },
+
+      filtrarPorPeriodo(lista) {
+        const { inicio, fim } = this.periodo;
+        return (lista || []).filter(item => {
+          return item.data >= inicio && item.data <= fim;
+        });
+      },
+
+      formatDatePtBR(date) {
+        return date.toLocaleDateString('pt-BR', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long'
+        });
+      },
+
+      formatShortDatePtBR(date) {
+        return date.toLocaleDateString('pt-BR', {
+          day: 'numeric',
+          month: 'long'
+        });
+      },
+
+      fmtBRL(val) {
+        const num = Number(val) || 0;
+        const isNeg = num < 0;
+        const absFormatted = Math.abs(num).toLocaleString('pt-BR', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+        return isNeg ? `−R$ ${absFormatted}` : `R$ ${absFormatted}`;
+      },
+
+      init() {
+        const hoje = this.getTodayISODate();
+        const r7 = this.calculateRange('7days', hoje);
+        this.periodo = {
+          tipo: '7days',
+          inicio: r7.inicio,
+          fim: r7.fim
+        };
+
+        const now = new Date();
+        this.calViewYear = now.getFullYear();
+        this.calViewMonth = now.getMonth();
+
+        this.updateDatesAndGreeting();
+        this.renderHome();
+        this.renderMovements();
+        this.updatePeriodSelectorLabel();
+        this.updateResumo();
+        this.renderFechamentosResumo();
+
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            this.closePeriodModal();
+            this.closeMovementDetails();
+          }
+        });
+      },
+
+      updatePeriodSelectorLabel() {
+        const lbl = document.getElementById('period-btn-label');
+        if (!lbl) return;
+
+        const optionsMap = {
+          'today': 'Hoje',
+          'yesterday': 'Ontem',
+          '7days': 'Últimos 7 dias',
+          '30days': 'Últimos 30 dias',
+          '3months': 'Últimos 3 meses',
+          'this_month': 'Este mês',
+          'last_month': 'Mês passado'
+        };
+
+        if (this.periodo.tipo === 'custom') {
+          const [y1, m1, d1] = this.periodo.inicio.split('-');
+          const [y2, m2, d2] = this.periodo.fim.split('-');
+          lbl.textContent = `${d1}/${m1} – ${d2}/${m2}`;
+        } else {
+          lbl.textContent = optionsMap[this.periodo.tipo] || 'Últimos 7 dias';
+        }
+      },
+
+      openPeriodModal() {
+        // Clone current state to draft
+        this.draftPeriodo = {
+          tipo: this.periodo.tipo,
+          inicio: this.periodo.inicio,
+          fim: this.periodo.fim
+        };
+        this.calPickingSecond = false;
+
+        const now = new Date();
+        if (this.draftPeriodo.inicio) {
+          const [y, m] = this.draftPeriodo.inicio.split('-').map(Number);
+          this.calViewYear = y;
+          this.calViewMonth = m - 1;
+        } else {
+          this.calViewYear = now.getFullYear();
+          this.calViewMonth = now.getMonth();
+        }
+
+        this.renderPeriodOptions();
+        this.renderCalendar();
+        this.validatePeriodDraft();
+
+        const trigger = document.getElementById('period-selector-trigger');
+        if (trigger) trigger.setAttribute('aria-expanded', 'true');
+
+        const modal = document.getElementById('period-modal-backdrop');
+        if (modal) modal.classList.add('open');
+      },
+
+      closePeriodModal() {
+        const modal = document.getElementById('period-modal-backdrop');
+        if (modal) modal.classList.remove('open');
+
+        const trigger = document.getElementById('period-selector-trigger');
+        if (trigger) trigger.setAttribute('aria-expanded', 'false');
+      },
+
+      handleBackdropClick(event) {
+        if (event.target.id === 'period-modal-backdrop') {
+          this.closePeriodModal();
+        }
+      },
+
+      renderPeriodOptions() {
+        const container = document.getElementById('period-options-container');
+        if (!container) return;
+
+        const options = [
+          { id: 'today', label: 'Hoje' },
+          { id: 'yesterday', label: 'Ontem' },
+          { id: '7days', label: 'Últimos 7 dias' },
+          { id: '30days', label: 'Últimos 30 dias' },
+          { id: '3months', label: 'Últimos 3 meses' },
+          { id: 'this_month', label: 'Este mês' },
+          { id: 'last_month', label: 'Mês passado' },
+          { id: 'custom', label: 'Personalizado' }
+        ];
+
+        container.innerHTML = options.map(opt => {
+          const isSel = this.draftPeriodo.tipo === opt.id;
+          const checkIcon = isSel
+            ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--green-primary);"><polyline points="20 6 9 17 4 12"></polyline></svg>'
+            : '';
+          return `
+            <button type="button" class="period-opt-btn ${isSel ? 'selected' : ''}" onclick="App.selectPeriodOption('${opt.id}')" role="radio" aria-checked="${isSel}">
+              <span>${opt.label}</span>
+              ${checkIcon}
+            </button>
+          `;
+        }).join('');
+
+        const customSec = document.getElementById('cal-custom-section');
+        if (customSec) {
+          customSec.style.display = this.draftPeriodo.tipo === 'custom' ? 'block' : 'none';
+        }
+      },
+
+      selectPeriodOption(tipo) {
+        this.draftPeriodo.tipo = tipo;
+        const hoje = this.getTodayISODate();
+
+        if (tipo !== 'custom') {
+          const range = this.calculateRange(tipo, hoje);
+          this.draftPeriodo.inicio = range.inicio;
+          this.draftPeriodo.fim = range.fim;
+        } else {
+          this.calPickingSecond = false;
+        }
+
+        this.renderPeriodOptions();
+        if (tipo === 'custom') {
+          this.renderCalendar();
+        }
+        this.validatePeriodDraft();
+      },
+
+      validatePeriodDraft() {
+        const applyBtn = document.getElementById('period-apply-btn');
+        const errEl = document.getElementById('cal-error-msg');
+        if (!applyBtn) return;
+
+        if (this.draftPeriodo.tipo !== 'custom') {
+          applyBtn.disabled = false;
+          applyBtn.style.opacity = '1';
+          applyBtn.style.cursor = 'pointer';
+          if (errEl) errEl.style.display = 'none';
+          return;
+        }
+
+        const { inicio, fim } = this.draftPeriodo;
+        if (!inicio || !fim) {
+          applyBtn.disabled = true;
+          applyBtn.style.opacity = '0.5';
+          applyBtn.style.cursor = 'not-allowed';
+          if (errEl) errEl.style.display = 'none';
+          return;
+        }
+
+        applyBtn.disabled = false;
+        applyBtn.style.opacity = '1';
+        applyBtn.style.cursor = 'pointer';
+        if (errEl) errEl.style.display = 'none';
+      },
+
+      applyPeriodModal() {
+        if (this.draftPeriodo.tipo === 'custom') {
+          const { inicio, fim } = this.draftPeriodo;
+          if (!inicio || !fim || fim < inicio) return;
+        }
+
+        this.periodo = {
+          tipo: this.draftPeriodo.tipo,
+          inicio: this.draftPeriodo.inicio,
+          fim: this.draftPeriodo.fim
+        };
+
+        this.closePeriodModal();
+        this.updatePeriodSelectorLabel();
+        this.updateResumo();
+      },
+
+      calPrevMonth() {
+        this.calViewMonth -= 1;
+        if (this.calViewMonth < 0) {
+          this.calViewMonth = 11;
+          this.calViewYear -= 1;
+        }
+        this.renderCalendar();
+      },
+
+      calNextMonth() {
+        const today = new Date();
+        const curY = today.getFullYear();
+        const curM = today.getMonth();
+
+        // Não navegar para meses no futuro
+        if (this.calViewYear > curY || (this.calViewYear === curY && this.calViewMonth >= curM)) {
+          return;
+        }
+
+        this.calViewMonth += 1;
+        if (this.calViewMonth > 11) {
+          this.calViewMonth = 0;
+          this.calViewYear += 1;
+        }
+        this.renderCalendar();
+      },
+
+      renderCalendar() {
+        const titleEl = document.getElementById('cal-month-title');
+        const gridEl = document.getElementById('cal-days-grid');
+        const nextBtn = document.getElementById('cal-next-btn');
+        if (!gridEl) return;
+
+        const viewDate = new Date(this.calViewYear, this.calViewMonth, 1);
+        const monthName = viewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+        if (titleEl) titleEl.textContent = monthName;
+
+        const todayIso = this.getTodayISODate();
+        const now = new Date();
+        const curY = now.getFullYear();
+        const curM = now.getMonth();
+        if (nextBtn) {
+          const isAtCurrentMonth = (this.calViewYear === curY && this.calViewMonth === curM) || this.calViewYear > curY;
+          nextBtn.disabled = isAtCurrentMonth;
+        }
+
+        // Primeiro dia da semana do mês (0 = dom, 6 = sab)
+        const firstDayWeek = new Date(this.calViewYear, this.calViewMonth, 1).getDay();
+        const daysInMonth = new Date(this.calViewYear, this.calViewMonth + 1, 0).getDate();
+        const daysInPrevMonth = new Date(this.calViewYear, this.calViewMonth, 0).getDate();
+
+        let cellsHtml = '';
+
+        // Dias do mês anterior
+        for (let i = firstDayWeek - 1; i >= 0; i--) {
+          const dayNum = daysInPrevMonth - i;
+          cellsHtml += `<button type="button" class="cal-day-cell other-month" tabindex="-1" disabled>${dayNum}</button>`;
+        }
+
+        const { inicio, fim } = this.draftPeriodo;
+
+        // Dias do mês atual
+        for (let d = 1; d <= daysInMonth; d++) {
+          const iso = `${this.calViewYear}-${String(this.calViewMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+          const isFuture = iso > todayIso;
+
+          let classes = ['cal-day-cell'];
+          if (isFuture) {
+            classes.push('disabled');
+          }
+
+          if (inicio && fim) {
+            if (inicio === fim && iso === inicio) {
+              classes.push('range-single');
+            } else if (iso === inicio) {
+              classes.push('range-start');
+            } else if (iso === fim) {
+              classes.push('range-end');
+            } else if (iso > inicio && iso < fim) {
+              classes.push('in-range');
+            }
+          } else if (inicio && iso === inicio) {
+            classes.push('range-single');
+          }
+
+          const disabledAttr = isFuture ? 'disabled' : '';
+          cellsHtml += `<button type="button" class="${classes.join(' ')}" onclick="App.pickCalDay('${iso}')" ${disabledAttr} aria-label="${d} de ${monthName}">${d}</button>`;
+        }
+
+        // Dias do mês seguinte para completar o grid (linhas de 7)
+        const totalUsed = firstDayWeek + daysInMonth;
+        const remaining = (7 - (totalUsed % 7)) % 7;
+        for (let nextD = 1; nextD <= remaining; nextD++) {
+          cellsHtml += `<button type="button" class="cal-day-cell other-month" tabindex="-1" disabled>${nextD}</button>`;
+        }
+
+        gridEl.innerHTML = cellsHtml;
+
+        // Update range hint
+        const hintEl = document.getElementById('cal-range-hint');
+        if (hintEl) {
+          if (!inicio || !fim) {
+            hintEl.textContent = 'Toque em uma data para selecionar.';
+          } else if (this.calPickingSecond) {
+            const [iy, im, id] = inicio.split('-');
+            hintEl.textContent = `Início: ${id}/${im}. Toque na data final ou aplique.`;
+          } else if (inicio === fim) {
+            const [iy, im, id] = inicio.split('-');
+            hintEl.textContent = `Selecionado: ${id}/${im}.`;
+          } else {
+            const [iy, im, id] = inicio.split('-');
+            const [fy, fm, fd] = fim.split('-');
+            hintEl.textContent = `Selecionado: ${id}/${im} até ${fd}/${fm}.`;
+          }
+        }
+      },
+
+      pickCalDay(iso) {
+        const todayIso = this.getTodayISODate();
+        if (iso > todayIso) return;
+
+        if (!this.calPickingSecond) {
+          // 1º toque: define início e fim com esse mesmo dia
+          this.draftPeriodo.inicio = iso;
+          this.draftPeriodo.fim = iso;
+          this.calPickingSecond = true;
+        } else {
+          // 2º toque: define a outra ponta do intervalo com troca se anterior ao início
+          if (iso < this.draftPeriodo.inicio) {
+            this.draftPeriodo.fim = this.draftPeriodo.inicio;
+            this.draftPeriodo.inicio = iso;
+          } else {
+            this.draftPeriodo.fim = iso;
+          }
+          this.calPickingSecond = false;
+        }
+
+        this.renderCalendar();
+        this.validatePeriodDraft();
+      },
+
+      seedInitialMovements() {
+        this.lancamentos = [];
+      },
+
+      updateDatesAndGreeting() {
+        const now = new Date();
+
+        const hour = now.getHours();
+        let greeting = 'Bom dia';
+        if (hour >= 12 && hour < 18) {
+          greeting = 'Boa tarde';
+        } else if (hour >= 18 || hour < 5) {
+          greeting = 'Boa noite';
+        }
+        const titleEl = document.getElementById('home-title');
+        if (titleEl) titleEl.textContent = `${greeting}, Ana`;
+
+        const dateEl = document.getElementById('home-current-date');
+        if (dateEl) {
+          dateEl.textContent = this.formatDatePtBR(now);
+        }
+
+        const topDateEl = document.getElementById('top-date');
+        if (topDateEl) {
+          topDateEl.textContent = now.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+        }
+      },
+
+      openSplash() {
+        const splash = document.getElementById('splash-view');
+        if (splash) splash.classList.add('active');
+      },
+
+      closeSplash() {
+        const splash = document.getElementById('splash-view');
+        if (splash) splash.classList.remove('active');
+      },
+
+      navigate(screenName) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        
+        const target = document.getElementById(`screen-${screenName}`);
+        if (target) {
+          target.classList.add('active');
+          const host = document.getElementById('screenHost');
+          if (host) host.scrollTop = 0;
+        }
+
+        document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => btn.classList.remove('active'));
+        const navBtn = document.getElementById(`btn-nav-${screenName}`);
+        if (navBtn) {
+          navBtn.classList.add('active');
+        }
+      },
+
+      renderHome() {
+        const hoje = this.getTodayISODate();
+        const lancamentosHoje = this.lancamentos.filter(m => m.data === hoje);
+        const totaisHoje = this.calcularTotais(lancamentosHoje);
+
+        const balanceEl = document.getElementById('home-balance');
+        const incEl = document.getElementById('home-incomes');
+        const expEl = document.getElementById('home-expenses');
+
+        if (balanceEl) {
+          balanceEl.textContent = this.fmtBRL(totaisHoje.saldo);
+          balanceEl.className = 'money-hero ' + (totaisHoje.saldo >= 0 ? 'text-green' : 'text-red');
+        }
+        if (incEl) incEl.textContent = this.fmtBRL(totaisHoje.entradas);
+        if (expEl) expEl.textContent = this.fmtBRL(totaisHoje.despesas);
+
+        const listEl = document.getElementById('home-recent-list');
+        if (!listEl) return;
+
+        if (lancamentosHoje.length === 0) {
+          listEl.innerHTML = '<div style="padding: 14px 0; font-size: 13px; color: var(--text-muted); text-align: center;">Ainda não há lançamentos hoje.</div>';
+          return;
+        }
+
+        const todayItems = lancamentosHoje.slice(0, 3);
+        listEl.innerHTML = todayItems.map(item => this.buildMovementRow(item)).join('');
+      },
+
+      buildMovementRow(item) {
+        const isInc = item.tipo === 'entrada';
+        const bgIcon = isInc ? 'var(--green-subtle)' : 'var(--red-subtle)';
+        const textIcon = isInc ? 'var(--green-text)' : 'var(--red-expense)';
+        const sign = isInc ? '+' : '-';
+        const valClass = isInc ? 'text-green' : 'text-red';
+        const iconSvg = isInc 
+          ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="7 17 17 7 17 17"/><polyline points="7 7 17 7"/></svg>'
+          : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="7 7 17 17 7 17"/><polyline points="17 7 17 17"/></svg>';
+
+        const catLabel = item.categoria ? ` • ${item.categoria}` : '';
+
+        return `
+          <div class="mov-item" onclick="App.openMovementDetails(${item.id})" style="cursor: pointer;" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')App.openMovementDetails(${item.id})" title="Ver detalhes do lançamento">
+            <div style="display: flex; align-items: center; min-width: 0;">
+              <div class="mov-icon" style="background: ${bgIcon}; color: ${textIcon};">
+                ${iconSvg}
+              </div>
+              <div style="min-width: 0;">
+                <div style="font-size: 14px; font-weight: 500; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  ${item.observacao || (isInc ? 'Entrada registrada' : 'Despesa registrada')}
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted);">
+                  ${item.hora}${catLabel}
+                </div>
+              </div>
+            </div>
+            <div style="text-align: right; margin-left: 10px; flex-shrink: 0;">
+              <div class="${valClass}" style="font-size: 15px; font-weight: 600;">
+                ${sign} ${this.fmtBRL(item.valor)}
+              </div>
+            </div>
+          </div>
+        `;
+      },
+
+      openMovementDetails(id) {
+        const item = this.lancamentos.find(m => m.id === id);
+        if (!item) return;
+
+        const bodyEl = document.getElementById('mov-detail-body');
+        if (!bodyEl) return;
+
+        const isInc = item.tipo === 'entrada';
+        const sign = isInc ? '+' : '−';
+        const valClass = isInc ? 'text-green' : 'text-red';
+        const tipoLabel = isInc ? 'Entrada' : 'Despesa';
+
+        let dataLabel = item.data;
+        if (item.data) {
+          const [y, m, d] = item.data.split('-');
+          dataLabel = `${d}/${m}/${y}`;
+        }
+
+        const categoriaRow = !isInc ? `
+          <div style="display: flex; justify-content: space-between; font-size: 13px;">
+            <span class="ui-label">Categoria</span>
+            <span style="font-weight: 500; color: var(--text-main);">${item.categoria || 'Não informado'}</span>
+          </div>
+        ` : '';
+
+        const formaRecebimentoRow = isInc ? `
+          <div style="display: flex; justify-content: space-between; font-size: 13px;">
+            <span class="ui-label">Forma de recebimento</span>
+            <span style="font-weight: 500; color: var(--text-main);">${item.formaRecebimento || 'Não informado'}</span>
+          </div>
+        ` : '';
+
+        const formaPagamentoRow = !isInc ? `
+          <div style="display: flex; justify-content: space-between; font-size: 13px;">
+            <span class="ui-label">Forma de pagamento</span>
+            <span style="font-weight: 500; color: var(--text-main);">${item.formaPagamento || 'Não informado'}</span>
+          </div>
+        ` : '';
+
+        bodyEl.innerHTML = `
+          <div style="text-align: center; padding: 10px 0 16px;">
+            <span class="ui-label-micro">${tipoLabel}</span>
+            <div class="${valClass}" style="font-size: 30px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums;">
+              ${sign} ${this.fmtBRL(item.valor)}
+            </div>
+          </div>
+
+          <div style="background: var(--surface-btn-sec); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; justify-content: space-between; font-size: 13px;">
+              <span class="ui-label">Data</span>
+              <span style="font-weight: 500; color: var(--text-main);">${dataLabel}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px;">
+              <span class="ui-label">Hora</span>
+              <span style="font-weight: 500; color: var(--text-main);">${item.hora || '—'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px;">
+              <span class="ui-label">Descrição</span>
+              <span style="font-weight: 500; color: var(--text-main); text-align: right; max-width: 60%;">${item.observacao || (isInc ? 'Entrada registrada' : 'Despesa registrada')}</span>
+            </div>
+            ${categoriaRow}
+            ${formaRecebimentoRow}
+            ${formaPagamentoRow}
+            <div style="display: flex; justify-content: space-between; font-size: 13px; border-top: 1px dashed var(--divider); padding-top: 10px;">
+              <span class="ui-label">Observação</span>
+              <span style="font-weight: 500; color: var(--text-main); text-align: right; max-width: 60%;">${item.observacaoDetalhe || 'Nenhuma'}</span>
+            </div>
+          </div>
+        `;
+
+        const modal = document.getElementById('mov-detail-backdrop');
+        if (modal) modal.classList.add('open');
+      },
+
+      closeMovementDetails() {
+        const modal = document.getElementById('mov-detail-backdrop');
+        if (modal) modal.classList.remove('open');
+      },
+
+      handleMovementModalBackdrop(event) {
+        if (event.target.id === 'mov-detail-backdrop') {
+          this.closeMovementDetails();
+        }
+      },
+
+      toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme') || 'dark';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', newTheme);
+
+        const sunIcon = document.getElementById('theme-icon-sun');
+        const moonIcon = document.getElementById('theme-icon-moon');
+        if (newTheme === 'dark') {
+          if (sunIcon) sunIcon.style.display = 'block';
+          if (moonIcon) moonIcon.style.display = 'none';
+        } else {
+          if (sunIcon) sunIcon.style.display = 'none';
+          if (moonIcon) moonIcon.style.display = 'block';
+        }
+      },
+
+      openEntryForm(mode) {
+        this.entryMode = mode;
+        this.rawCents = 0;
+        this.selectedCategory = '';
+        this.selectedFormaRecebimento = '';
+        this.selectedFormaPagamento = '';
+
+        const titleEl = document.getElementById('entry-title');
+        const amountLabel = document.getElementById('entry-amount-label');
+        const incomeReceiptBox = document.getElementById('income-receipt-container');
+        const incomeObsBox = document.getElementById('income-obs-container');
+        const expenseCatBox = document.getElementById('expense-cat-container');
+        const expensePaymentBox = document.getElementById('expense-payment-container');
+        const expenseFieldsBox = document.getElementById('expense-fields-container');
+        const saveBtn = document.getElementById('entry-save-btn');
+        const dispVal = document.getElementById('entry-display-val');
+        const detailInput = document.getElementById('entry-obs-detalhe');
+        const descInput = document.getElementById('expense-desc-input');
+        const obsExpenseInput = document.getElementById('expense-obs-input');
+        const errEl = document.getElementById('entry-error-msg');
+        const paymentHint = document.getElementById('expense-payment-hint');
+
+        if (detailInput) detailInput.value = '';
+        if (descInput) descInput.value = '';
+        if (obsExpenseInput) obsExpenseInput.value = '';
+        if (errEl) {
+          errEl.style.display = 'none';
+          errEl.textContent = 'Informe um valor maior que zero.';
+        }
+        if (paymentHint) paymentHint.style.display = 'none';
+
+        // Atualizar seletor compacto de categoria para estado inicial
+        this.updateExpenseCatTrigger();
+
+        // Desmarcar todos os chips
+        document.querySelectorAll('#income-receipt-container .cat-chip, #expense-payment-container .cat-chip').forEach(c => {
+          c.classList.remove('selected');
+          c.setAttribute('aria-checked', 'false');
+        });
+
+        const sharedNumpad = document.getElementById('entry-shared-numpad');
+        const actionsBox = document.getElementById('entry-actions-container');
+
+        if (mode === 'income') {
+          if (titleEl) titleEl.textContent = 'Registrar Entrada';
+          if (amountLabel) amountLabel.textContent = 'Valor da entrada';
+          if (incomeReceiptBox) incomeReceiptBox.style.display = 'block';
+          if (incomeObsBox) incomeObsBox.style.display = 'block';
+          if (expenseCatBox) expenseCatBox.style.display = 'none';
+          if (expensePaymentBox) expensePaymentBox.style.display = 'none';
+          if (expenseFieldsBox) expenseFieldsBox.style.display = 'none';
+          if (dispVal) dispVal.className = 'amount-value text-green';
+          if (saveBtn) {
+            saveBtn.className = 'touch-btn btn-action-income';
+            saveBtn.textContent = 'Salvar';
+          }
+          // Ordem para ENTRADA: 1=amount, 2=receipt, 3=obs, 4=numpad, 5=actions
+          if (sharedNumpad) sharedNumpad.style.order = '4';
+          if (actionsBox) actionsBox.style.order = '5';
+        } else {
+          if (titleEl) titleEl.textContent = 'Registrar Despesa';
+          if (amountLabel) amountLabel.textContent = 'Valor da despesa';
+          if (incomeReceiptBox) incomeReceiptBox.style.display = 'none';
+          if (incomeObsBox) incomeObsBox.style.display = 'none';
+          if (expenseCatBox) {
+            expenseCatBox.style.display = 'block';
+            expenseCatBox.style.order = '2';
+          }
+          // Ordem para DESPESA: 1=amount, 2=categoria, 3=numpad, 4=pagamento, 5=desc/obs, 6=actions
+          if (sharedNumpad) sharedNumpad.style.order = '3';
+          if (expensePaymentBox) {
+            expensePaymentBox.style.display = 'block';
+            expensePaymentBox.style.order = '4';
+          }
+          if (expenseFieldsBox) {
+            expenseFieldsBox.style.display = 'block';
+            expenseFieldsBox.style.order = '5';
+          }
+          if (actionsBox) actionsBox.style.order = '6';
+
+          if (dispVal) dispVal.className = 'amount-value text-red';
+          if (saveBtn) {
+            saveBtn.className = 'touch-btn btn-action-expense';
+            saveBtn.textContent = 'Salvar';
+          }
+        }
+
+        this.updateKeypadDisplay();
+        this.navigate('entry');
+      },
+
+      openCategoryModal() {
+        const modal = document.getElementById('cat-modal-backdrop');
+        const container = document.getElementById('cat-modal-options-list');
+        if (!container || !modal) return;
+
+        const categorias = [
+          'Estoque / Mercadorias',
+          'Aluguel',
+          'Funcionários',
+          'Transporte / Combustível',
+          'Alimentação',
+          'Contas e serviços',
+          'Marketing',
+          'Impostos e taxas',
+          'Equipamentos / Manutenção',
+          'Outros'
+        ];
+
+        let html = categorias.map(cat => {
+          const isSel = this.selectedCategory === cat;
+          const checkIcon = isSel
+            ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--green-primary);"><polyline points="20 6 9 17 4 12"></polyline></svg>'
+            : '';
+          return `
+            <button type="button" class="period-opt-btn ${isSel ? 'selected' : ''}" onclick="App.chooseCategory('${cat.replace(/'/g, "\\'")}')" role="radio" aria-checked="${isSel}">
+              <span>${cat}</span>
+              ${checkIcon}
+            </button>
+          `;
+        }).join('');
+
+        container.innerHTML = html;
+        modal.classList.add('open');
+      },
+
+      closeCategoryModal() {
+        const modal = document.getElementById('cat-modal-backdrop');
+        if (modal) modal.classList.remove('open');
+      },
+
+      handleCategoryModalBackdrop(event) {
+        if (event.target.id === 'cat-modal-backdrop') {
+          this.closeCategoryModal();
+        }
+      },
+
+      chooseCategory(catName) {
+        this.selectedCategory = catName;
+        this.updateExpenseCatTrigger();
+        const errEl = document.getElementById('entry-error-msg');
+        if (errEl && errEl.textContent === 'Selecione a categoria da despesa.') {
+          errEl.style.display = 'none';
+        }
+        this.closeCategoryModal();
+      },
+
+      updateExpenseCatTrigger() {
+        const trigger = document.getElementById('expense-cat-trigger');
+        const label = document.getElementById('expense-cat-label');
+        if (!trigger || !label) return;
+
+        if (this.selectedCategory) {
+          label.textContent = this.selectedCategory;
+          label.style.color = 'var(--text-main)';
+          label.style.fontWeight = '600';
+          trigger.style.borderColor = 'var(--green-primary)';
+        } else {
+          label.textContent = 'Selecionar categoria';
+          label.style.color = 'var(--text-muted)';
+          label.style.fontWeight = '400';
+          trigger.style.borderColor = 'var(--border)';
+        }
+      },
+
+      selectFormaRecebimento(forma, btn) {
+        if (this.selectedFormaRecebimento === forma) {
+          this.selectedFormaRecebimento = '';
+          btn.classList.remove('selected');
+          btn.setAttribute('aria-checked', 'false');
+          return;
+        }
+
+        this.selectedFormaRecebimento = forma;
+        document.querySelectorAll('#income-receipt-container .cat-chip').forEach(c => {
+          c.classList.remove('selected');
+          c.setAttribute('aria-checked', 'false');
+        });
+        btn.classList.add('selected');
+        btn.setAttribute('aria-checked', 'true');
+      },
+
+      selectFormaPagamento(forma, btn) {
+        if (this.selectedFormaPagamento === forma) {
+          this.selectedFormaPagamento = '';
+          btn.classList.remove('selected');
+          btn.setAttribute('aria-checked', 'false');
+          return;
+        }
+
+        this.selectedFormaPagamento = forma;
+        const hint = document.getElementById('expense-payment-hint');
+        if (hint) hint.style.display = 'none';
+
+        document.querySelectorAll('#expense-payment-container .cat-chip').forEach(c => {
+          c.classList.remove('selected');
+          c.setAttribute('aria-checked', 'false');
+        });
+        btn.classList.add('selected');
+        btn.setAttribute('aria-checked', 'true');
+      },
+
+      keypadPress(digit) {
+        const errEl = document.getElementById('entry-error-msg');
+        if (errEl && errEl.textContent === 'Informe um valor maior que zero.') {
+          errEl.style.display = 'none';
+        }
+
+        if (this.rawCents >= 99999999) return;
+        this.rawCents = this.rawCents * 10 + parseInt(digit, 10);
+        this.updateKeypadDisplay();
+      },
+
+      keypadBackspace() {
+        const errEl = document.getElementById('entry-error-msg');
+        if (errEl && errEl.textContent === 'Informe um valor maior que zero.') {
+          errEl.style.display = 'none';
+        }
+
+        this.rawCents = Math.floor(this.rawCents / 10);
+        this.updateKeypadDisplay();
+      },
+
+      keypadClear() {
+        const errEl = document.getElementById('entry-error-msg');
+        if (errEl && errEl.textContent === 'Informe um valor maior que zero.') {
+          errEl.style.display = 'none';
+        }
+
+        this.rawCents = 0;
+        this.updateKeypadDisplay();
+      },
+
+      updateKeypadDisplay() {
+        const val = this.rawCents / 100;
+        const el = document.getElementById('entry-display-val');
+        if (el) el.textContent = this.fmtBRL(val);
+      },
+
+      saveEntry() {
+        const amount = this.rawCents / 100;
+        const errEl = document.getElementById('entry-error-msg');
+
+        if (amount <= 0) {
+          if (errEl) {
+            errEl.textContent = 'Informe um valor maior que zero.';
+            errEl.style.display = 'block';
+          }
+          this.showToast('Informe um valor maior que zero.');
+          return;
+        }
+
+        // Validações obrigatórias no modo despesa: categoria e forma de pagamento
+        if (this.entryMode === 'expense') {
+          if (!this.selectedCategory) {
+            if (errEl) {
+              errEl.textContent = 'Selecione a categoria da despesa.';
+              errEl.style.display = 'block';
+            }
+            const catTrigger = document.getElementById('expense-cat-trigger');
+            if (catTrigger) catTrigger.style.borderColor = 'var(--red-expense)';
+            this.showToast('Selecione a categoria da despesa.');
+            return;
+          }
+
+          if (!this.selectedFormaPagamento) {
+            if (errEl && errEl.textContent === 'Selecione a categoria da despesa.') {
+              errEl.style.display = 'none';
+            }
+            const hint = document.getElementById('expense-payment-hint');
+            if (hint) hint.style.display = 'inline';
+            this.showToast('Selecione a forma de pagamento.');
+            return;
+          }
+        }
+
+        if (errEl) errEl.style.display = 'none';
+
+        const hoje = this.getTodayISODate();
+        const now = new Date();
+        const hora = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+        let observacao = '';
+        let observacaoDetalhe = '';
+        let categoria = '';
+        let formaRecebimento = '';
+        let formaPagamento = '';
+
+        if (this.entryMode === 'income') {
+          const obsDetalheInput = document.getElementById('entry-obs-detalhe');
+          observacaoDetalhe = obsDetalheInput ? obsDetalheInput.value.trim() : '';
+          observacao = observacaoDetalhe || 'Entrada registrada';
+          categoria = ''; // Não gravar categoria em entradas
+          formaRecebimento = this.selectedFormaRecebimento || '';
+          formaPagamento = '';
+        } else {
+          const descInput = document.getElementById('expense-desc-input');
+          const obsInput = document.getElementById('expense-obs-input');
+          const descText = descInput ? descInput.value.trim() : '';
+          observacaoDetalhe = obsInput ? obsInput.value.trim() : '';
+          observacao = descText || 'Despesa registrada';
+          categoria = this.selectedCategory || '';
+          formaRecebimento = '';
+          formaPagamento = this.selectedFormaPagamento || '';
+        }
+
+        this.lancamentos.unshift({
+          id: Date.now(),
+          tipo: this.entryMode === 'income' ? 'entrada' : 'despesa',
+          valor: amount,
+          categoria: categoria,
+          formaRecebimento: formaRecebimento,
+          formaPagamento: formaPagamento,
+          observacao: observacao,
+          observacaoDetalhe: observacaoDetalhe,
+          data: hoje,
+          hora: hora
+        });
+
+        this.renderHome();
+        this.renderMovements();
+        this.updateResumo();
+
+        this.showToast(this.entryMode === 'income' ? 'Entrada registrada!' : 'Despesa registrada!');
+        this.navigate('home');
+      },
+
+      formatSavedDateTime(date) {
+        const d = String(date.getDate()).padStart(2, '0');
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const y = date.getFullYear();
+        const hr = String(date.getHours()).padStart(2, '0');
+        const min = String(date.getMinutes()).padStart(2, '0');
+        return `${d}/${m}/${y} às ${hr}:${min}`;
+      },
+
+      calcularDetalhamentoFechamento(dataIso) {
+        const lancamentosData = this.lancamentos.filter(m => m.data === dataIso);
+        const totais = this.calcularTotais(lancamentosData);
+
+        // A. Entradas por forma de recebimento:
+        // Dinheiro, Pix, Cartão, Outros e Não informado (somente se houver registros sem forma)
+        const formasValores = {
+          'Dinheiro': 0,
+          'Pix': 0,
+          'Cartão': 0,
+          'Outros': 0,
+          'Não informado': 0
+        };
+        let temSemForma = false;
+
+        lancamentosData.forEach(item => {
+          if (item.tipo === 'entrada') {
+            const val = Number(item.valor) || 0;
+            const f = item.formaRecebimento ? item.formaRecebimento.trim() : '';
+            if (f && formasValores.hasOwnProperty(f)) {
+              formasValores[f] += val;
+            } else {
+              formasValores['Não informado'] += val;
+              temSemForma = true;
+            }
+          }
+        });
+
+        const porForma = [
+          { forma: 'Dinheiro', valor: Math.round(formasValores['Dinheiro'] * 100) / 100 },
+          { forma: 'Pix', valor: Math.round(formasValores['Pix'] * 100) / 100 },
+          { forma: 'Cartão', valor: Math.round(formasValores['Cartão'] * 100) / 100 },
+          { forma: 'Outros', valor: Math.round(formasValores['Outros'] * 100) / 100 }
+        ];
+
+        if (temSemForma) {
+          porForma.push({ forma: 'Não informado', valor: Math.round(formasValores['Não informado'] * 100) / 100 });
+        }
+
+        // B. Despesas por categoria:
+        // Uma linha por categoria usada no dia com a soma de TODAS as despesas daquela categoria.
+        // Despesas sem categoria agrupadas em "Não informado".
+        const catMap = {};
+        lancamentosData.forEach(item => {
+          if (item.tipo === 'despesa') {
+            const val = Number(item.valor) || 0;
+            const c = item.categoria ? item.categoria.trim() : 'Não informado';
+            catMap[c] = (catMap[c] || 0) + val;
+          }
+        });
+
+        const porCategoria = Object.entries(catMap).map(([categoria, valor]) => ({
+          categoria,
+          valor: Math.round(valor * 100) / 100
+        }));
+
+        return {
+          entradas: totais.entradas,
+          despesas: totais.despesas,
+          resultado: totais.saldo,
+          porForma,
+          porCategoria,
+          totalItens: lancamentosData.length
+        };
+      },
+
+      openCloseRegister() {
+        const formView = document.getElementById('close-form-view');
+        const sumView = document.getElementById('close-summary-view');
+
+        if (formView) formView.style.display = 'block';
+        if (sumView) sumView.style.display = 'none';
+
+        const hoje = this.getTodayISODate();
+        const savedFechamento = this.fechamentos.find(f => f.data === hoje);
+
+        const noticeBox = document.getElementById('close-saved-notice');
+        const savedTimeEl = document.getElementById('close-saved-time');
+        const btnLabel = document.getElementById('close-main-btn-label');
+        const cashInput = document.getElementById('close-cash-val');
+        const obsInput = document.getElementById('close-obs');
+
+        if (savedFechamento) {
+          if (noticeBox) noticeBox.style.display = 'block';
+          if (savedTimeEl) savedTimeEl.textContent = savedFechamento.atualizadoEm || '';
+          if (btnLabel) btnLabel.textContent = 'Atualizar fechamento';
+
+          if (cashInput) {
+            cashInput.value = savedFechamento.dinheiroContado !== null && savedFechamento.dinheiroContado !== undefined
+              ? savedFechamento.dinheiroContado
+              : '';
+          }
+          if (obsInput) {
+            obsInput.value = savedFechamento.observacao || '';
+          }
+        } else {
+          if (noticeBox) noticeBox.style.display = 'none';
+          if (btnLabel) btnLabel.textContent = 'Concluir fechamento';
+          if (cashInput) cashInput.value = '';
+          if (obsInput) obsInput.value = '';
+        }
+
+        const label = document.getElementById('close-date-label');
+        if (label) {
+          label.textContent = this.formatDatePtBR(new Date());
+        }
+
+        // Renderizar detalhamento atualizado na tela de fechamento
+        this.recalcClose();
+        this.navigate('close');
+      },
+
+      recalcClose() {
+        const hoje = this.getTodayISODate();
+        const detalhe = this.calcularDetalhamentoFechamento(hoje);
+
+        // A. Renderizar Entradas por forma
+        const formListEl = document.getElementById('close-formas-list');
+        if (formListEl) {
+          formListEl.innerHTML = detalhe.porForma.map(pf => `
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              <span class="ui-label">${pf.forma}</span>
+              <span class="text-main" style="font-weight: 500;">${this.fmtBRL(pf.valor)}</span>
+            </div>
+          `).join('');
+        }
+
+        // B. Renderizar Despesas por categoria
+        const catListEl = document.getElementById('close-cat-list');
+        if (catListEl) {
+          if (detalhe.porCategoria.length === 0) {
+            catListEl.innerHTML = `<span class="ui-label" style="font-size: 12px; color: var(--text-muted); font-style: italic;">Nenhuma despesa registrada hoje.</span>`;
+          } else {
+            catListEl.innerHTML = detalhe.porCategoria.map(pc => `
+              <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <span class="ui-label">${pc.categoria}</span>
+                <span class="text-main" style="font-weight: 500;">${this.fmtBRL(pc.valor)}</span>
+              </div>
+            `).join('');
+          }
+        }
+
+        // C. Resumo financeiro
+        const inEl = document.getElementById('close-in-val');
+        const outEl = document.getElementById('close-out-val');
+        const resInEl = document.getElementById('close-resumo-in');
+        const resOutEl = document.getElementById('close-resumo-out');
+        const resEl = document.getElementById('close-calc-result');
+
+        if (inEl) inEl.textContent = this.fmtBRL(detalhe.entradas);
+        if (outEl) outEl.textContent = this.fmtBRL(detalhe.despesas);
+        if (resInEl) resInEl.textContent = this.fmtBRL(detalhe.entradas);
+        if (resOutEl) resOutEl.textContent = this.fmtBRL(detalhe.despesas);
+
+        if (resEl) {
+          resEl.textContent = this.fmtBRL(detalhe.resultado);
+          resEl.className = (detalhe.resultado >= 0 ? 'text-green' : 'text-red');
+        }
+      },
+
+      confirmClose() {
+        const hoje = this.getTodayISODate();
+        const detalhe = this.calcularDetalhamentoFechamento(hoje);
+
+        const cashRaw = document.getElementById('close-cash-val').value.trim();
+        const cashVal = (cashRaw !== '' && !isNaN(Number(cashRaw.replace(',', '.'))))
+          ? Number(cashRaw.replace(',', '.'))
+          : null;
+        const obs = document.getElementById('close-obs').value.trim();
+
+        const now = new Date();
+        const horarioSalvo = this.formatSavedDateTime(now);
+
+        // Procurar fechamento existente para a data de hoje para atualizar ou criar
+        let record = this.fechamentos.find(f => f.data === hoje);
+        const isUpdate = !!record;
+
+        if (record) {
+          record.entradas = detalhe.entradas;
+          record.despesas = detalhe.despesas;
+          record.resultado = detalhe.resultado;
+          record.porForma = detalhe.porForma;
+          record.porCategoria = detalhe.porCategoria;
+          record.dinheiroContado = cashVal;
+          record.observacao = obs;
+          record.atualizadoEm = horarioSalvo;
+        } else {
+          record = {
+            data: hoje,
+            entradas: detalhe.entradas,
+            despesas: detalhe.despesas,
+            resultado: detalhe.resultado,
+            porForma: detalhe.porForma,
+            porCategoria: detalhe.porCategoria,
+            dinheiroContado: cashVal,
+            observacao: obs,
+            atualizadoEm: horarioSalvo
+          };
+          this.fechamentos.unshift(record);
+        }
+
+        // Exibir recibo com o snapshot salvo
+        this.showCloseReceipt(record);
+        this.renderFechamentosResumo();
+        this.showToast(isUpdate ? 'Fechamento atualizado com sucesso!' : 'Caixa fechado com sucesso!');
+      },
+
+      showCloseReceipt(record) {
+        document.getElementById('close-form-view').style.display = 'none';
+        const sumView = document.getElementById('close-summary-view');
+        sumView.style.display = 'block';
+
+        const sumDateTxt = document.getElementById('sum-date-txt');
+        if (sumDateTxt) {
+          sumDateTxt.textContent = `Fechado em ${record.atualizadoEm} • Salvo`;
+        }
+
+        // Renderizar detalhamento A do snapshot salvo
+        const sumFormasList = document.getElementById('sum-formas-list');
+        if (sumFormasList) {
+          const formas = record.porForma || [];
+          sumFormasList.innerHTML = formas.map(pf => `
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              <span class="ui-label">${pf.forma}</span>
+              <span class="text-main" style="font-weight: 500;">${this.fmtBRL(pf.valor)}</span>
+            </div>
+          `).join('');
+        }
+        document.getElementById('sum-in').textContent = this.fmtBRL(record.entradas);
+
+        // Renderizar detalhamento B do snapshot salvo
+        const sumCatList = document.getElementById('sum-cat-list');
+        if (sumCatList) {
+          const cats = record.porCategoria || [];
+          if (cats.length === 0) {
+            sumCatList.innerHTML = `<span class="ui-label" style="font-size: 12px; color: var(--text-muted); font-style: italic;">Nenhuma despesa registrada.</span>`;
+          } else {
+            sumCatList.innerHTML = cats.map(pc => `
+              <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <span class="ui-label">${pc.categoria}</span>
+                <span class="text-main" style="font-weight: 500;">${this.fmtBRL(pc.valor)}</span>
+              </div>
+            `).join('');
+          }
+        }
+        document.getElementById('sum-out').textContent = this.fmtBRL(record.despesas);
+
+        // Renderizar detalhamento C do snapshot salvo
+        document.getElementById('sum-res-in').textContent = this.fmtBRL(record.entradas);
+        document.getElementById('sum-res-out').textContent = this.fmtBRL(record.despesas);
+
+        const sumRes = document.getElementById('sum-res');
+        sumRes.textContent = this.fmtBRL(record.resultado);
+        sumRes.className = record.resultado >= 0 ? 'text-green' : 'text-red';
+
+        const cashRow = document.getElementById('sum-cash-row');
+        if (record.dinheiroContado !== null && record.dinheiroContado !== undefined) {
+          if (cashRow) cashRow.style.display = 'flex';
+          document.getElementById('sum-cash').textContent = this.fmtBRL(record.dinheiroContado);
+        } else {
+          if (cashRow) cashRow.style.display = 'none';
+        }
+
+        const sumObs = document.getElementById('sum-obs-txt');
+        if (sumObs) {
+          sumObs.textContent = record.observacao ? `Observação: "${record.observacao}"` : '';
+        }
+      },
+
+      openSavedCloseReceipt(dataIso) {
+        const record = this.fechamentos.find(f => f.data === dataIso);
+        if (!record) return;
+        this.navigate('close');
+        this.showCloseReceipt(record);
+      },
+
+      renderFechamentosResumo() {
+        const container = document.getElementById('resumo-fechamentos-list');
+        if (!container) return;
+
+        if (!this.fechamentos || this.fechamentos.length === 0) {
+          container.innerHTML = '<div style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 8px 0;">Nenhum fechamento salvo ainda.</div>';
+          return;
+        }
+
+        // Ordenar por data decrescente e limitar a 7 registros
+        const sorted = [...this.fechamentos].sort((a, b) => b.data.localeCompare(a.data)).slice(0, 7);
+        const hoje = this.getTodayISODate();
+
+        container.innerHTML = sorted.map(f => {
+          let dataLabel = f.data;
+          if (f.data === hoje) {
+            dataLabel = 'Hoje';
+          } else {
+            const [y, m, d] = f.data.split('-');
+            dataLabel = `${d}/${m}`;
+          }
+
+          const resClass = f.resultado >= 0 ? 'text-green' : 'text-red';
+          const cashPart = (f.dinheiroContado !== null && f.dinheiroContado !== undefined)
+            ? `<span style="font-size: 12px; color: var(--text-muted);">Contado: ${this.fmtBRL(f.dinheiroContado)}</span>`
+            : '';
+
+          return `
+            <div onclick="App.openSavedCloseReceipt('${f.data}')" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 10px 4px; border-bottom: 1px solid var(--divider); transition: background-color 0.1s;" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')App.openSavedCloseReceipt('${f.data}')" title="Toque para ver o recibo detalhado">
+              <div>
+                <div style="font-size: 13px; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                  <span>${dataLabel}</span>
+                  <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);">(${f.atualizadoEm})</span>
+                </div>
+                ${cashPart}
+              </div>
+              <div style="text-align: right; display: flex; align-items: center; gap: 8px;">
+                <div>
+                  <div class="${resClass}" style="font-size: 14px; font-weight: 600;">${this.fmtBRL(f.resultado)}</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">resultado</div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-muted);"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            </div>
+          `;
+        }).join('');
+      },
+
+      setMovFilter(filter) {
+        this.currentMovFilter = filter;
+        ['today', '7days', 'month'].forEach(f => {
+          const btn = document.getElementById(`filter-${f}`);
+          if (btn) {
+            const active = f === filter;
+            btn.style.background = active ? 'var(--surface)' : 'transparent';
+            btn.style.color = active ? 'var(--text-main)' : 'var(--text-muted)';
+            btn.style.borderColor = active ? 'var(--border)' : 'transparent';
+          }
+        });
+        this.renderMovements();
+      },
+
+      getDaysDiff(dateStr, todayStr) {
+        const [y1, m1, d1] = dateStr.split('-').map(Number);
+        const [y2, m2, d2] = todayStr.split('-').map(Number);
+        const date1 = new Date(y1, m1 - 1, d1);
+        const date2 = new Date(y2, m2 - 1, d2);
+        return Math.round((date2 - date1) / (1000 * 60 * 60 * 24));
+      },
+
+      renderMovements() {
+        const container = document.getElementById('movements-container');
+        if (!container) return;
+
+        const hoje = this.getTodayISODate();
+
+        let items = this.lancamentos.filter(m => {
+          const diff = this.getDaysDiff(m.data, hoje);
+          if (this.currentMovFilter === 'today') {
+            return m.data === hoje;
+          } else if (this.currentMovFilter === '7days') {
+            return diff >= 0 && diff < 7;
+          } else if (this.currentMovFilter === 'month') {
+            const [y, mon] = m.data.split('-');
+            const [hy, hmon] = hoje.split('-');
+            return y === hy && mon === hmon;
+          }
+          return true;
+        });
+
+        const grouped = {};
+        items.forEach(it => {
+          const diff = this.getDaysDiff(it.data, hoje);
+          let groupLabel = '';
+          if (diff === 0) {
+            groupLabel = 'Hoje';
+          } else if (diff === 1) {
+            groupLabel = 'Ontem';
+          } else {
+            const [y, m, d] = it.data.split('-').map(Number);
+            groupLabel = this.formatShortDatePtBR(new Date(y, m - 1, d));
+          }
+
+          if (!grouped[groupLabel]) grouped[groupLabel] = [];
+          grouped[groupLabel].push(it);
+        });
+
+        if (Object.keys(grouped).length === 0) {
+          container.innerHTML = `
+            <div class="paper-card" style="text-align: center; padding: 32px 16px; color: var(--text-muted);">
+              Nenhum movimento encontrado para o período selecionado.
+            </div>
+          `;
+          return;
+        }
+
+        let html = '';
+        for (const [day, list] of Object.entries(grouped)) {
+          html += `
+            <div style="margin-bottom: 18px;">
+              <div class="ui-label-micro" style="margin: 0 0 8px 4px; text-transform: capitalize;">
+                ${day}
+              </div>
+              <div class="paper-card" style="padding: 4px 16px;">
+                ${list.map(it => this.buildMovementRow(it)).join('')}
+              </div>
+            </div>
+          `;
+        }
+        container.innerHTML = html;
+      },
+
+      updateResumo() {
+        // Toda tela lê da função calcularTotais e do array filtrado por período
+        const listaFiltrada = this.filtrarPorPeriodo(this.lancamentos);
+        const totais = this.calcularTotais(listaFiltrada);
+
+        const netEl = document.getElementById('res-period-saldo');
+        if (netEl) {
+          netEl.textContent = this.fmtBRL(totais.saldo);
+          netEl.className = 'money-hero ' + (totais.saldo >= 0 ? 'text-green' : 'text-red');
+        }
+
+        const hintEl = document.getElementById('res-period-hint');
+        if (hintEl) {
+          if (totais.saldo > 0) {
+            hintEl.textContent = 'Entradas superam as despesas';
+          } else if (totais.saldo < 0) {
+            hintEl.textContent = 'Despesas superam as entradas';
+          } else {
+            hintEl.textContent = 'Entradas e despesas equilibradas';
+          }
+        }
+
+        const barInTxt = document.getElementById('bar-in-txt');
+        const barOutTxt = document.getElementById('bar-out-txt');
+        if (barInTxt) barInTxt.textContent = this.fmtBRL(totais.entradas);
+        if (barOutTxt) barOutTxt.textContent = this.fmtBRL(totais.despesas);
+
+        const sumTotal = totais.entradas + totais.despesas;
+        const pctIn = sumTotal > 0 ? (totais.entradas / sumTotal) * 100 : 0;
+        const pctOut = sumTotal > 0 ? (totais.despesas / sumTotal) * 100 : 0;
+
+        const fillIn = document.getElementById('bar-in-fill');
+        const fillOut = document.getElementById('bar-out-fill');
+        if (fillIn) fillIn.style.width = `${pctIn}%`;
+        if (fillOut) fillOut.style.width = `${pctOut}%`;
+
+        // 2. FRASE DE SOBRA
+        const sobraEl = document.getElementById('resumo-sobra-txt');
+        if (sobraEl) {
+          if (listaFiltrada.length === 0) {
+            sobraEl.textContent = 'Ainda não há lançamentos neste período.';
+          } else if (totais.entradas === 0) {
+            sobraEl.textContent = 'Sem entradas no período para calcular o percentual.';
+          } else if (totais.saldo < 0) {
+            sobraEl.textContent = 'As despesas superaram as entradas no período.';
+          } else {
+            const x = Number(totais.percentualSobra).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+            sobraEl.textContent = `Sobrou ${x}% das entradas.`;
+          }
+        }
+
+        this.renderFechamentosResumo();
+      },
+
+      showToast(text) {
+        const toast = document.getElementById('app-toast');
+        const toastTxt = document.getElementById('toast-text');
+        if (!toast || !toastTxt) return;
+
+        toastTxt.textContent = text;
+        toast.classList.add('show');
+        clearTimeout(this._toastTimer);
+        this._toastTimer = setTimeout(() => {
+          toast.classList.remove('show');
+        }, 2600);
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      App.init();
+    });
+  </script>
+<script>
+/* Skip artifact shell — fixed helpers served beside every artifact. */
+(function () {
+  "use strict";
+
+  var fmt = {
+    num: function (v, opts) { return new Intl.NumberFormat("pt-BR", opts || {}).format(v); },
+    brl: function (v) { return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v); },
+    pct: function (v) { return new Intl.NumberFormat("pt-BR", { style: "percent", maximumFractionDigits: 1 }).format(v); }
+  };
+
+  // axisFmt keeps axis tick labels short (compact notation) so long values
+  // (e.g. full BRL amounts) never clip against the plot edge.
+  function axisFmt(v) {
+    return fmt.num(v, { notation: "compact", maximumFractionDigits: 1 });
+  }
+
+  // format accepts a function OR one of the fmt names ("num" | "brl" | "pct").
+  function coerceFormat(spec) {
+    if (typeof spec === "function") return spec;
+    if (typeof spec === "string" && fmt[spec]) return fmt[spec];
+    return function (v) { return fmt.num(v); };
+  }
+
+  function accent() {
+    return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#2563eb";
+  }
+  function mutedColor() {
+    return getComputedStyle(document.documentElement).getPropertyValue("--text-muted").trim() || "#5b6472";
+  }
+  function svgEl(tag, attrs) {
+    var el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (var k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  }
+  function frame(el, w, h) {
+    var svg = svgEl("svg", { viewBox: "0 0 " + w + " " + h, role: "img" });
+    el.innerHTML = "";
+    el.appendChild(svg);
+    return svg;
+  }
+
+  // maxOf guards the axis scale: empty values would give -Infinity (truthy,
+  // so "|| 1" can't catch it) and a non-positive max would flip the chart.
+  function maxOf(values) {
+    var m = values.length ? Math.max.apply(null, values) : 0;
+    return m > 0 ? m : 1;
+  }
+
+  // bar(el, {labels:[], values:[], color?, format?}) — vertical bar chart.
+  function bar(el, cfg) {
+    var W = 640, H = 280, padL = 46, padB = 30, padT = 12;
+    var svg = frame(el, W, H);
+    var max = maxOf(cfg.values);
+    var n = cfg.values.length;
+    var plotW = W - padL - 12, plotH = H - padT - padB;
+    var step = plotW / n, bw = Math.min(step * 0.62, 64);
+    var color = cfg.color || accent();
+    var f = coerceFormat(cfg.format);
+    for (var g = 0; g <= 4; g++) {
+      var gy = padT + plotH - (plotH * g) / 4;
+      svg.appendChild(svgEl("line", { x1: padL, y1: gy, x2: W - 12, y2: gy, stroke: "currentColor", "stroke-opacity": 0.08 }));
+      var lbl = svgEl("text", { x: padL - 8, y: gy + 4, "text-anchor": "end", "font-size": 10, fill: mutedColor() });
+      lbl.textContent = axisFmt((max * g) / 4);
+      svg.appendChild(lbl);
+    }
+    cfg.values.forEach(function (v, i) {
+      var bh = Math.max(0, (v / max) * plotH);
+      var x = padL + i * step + (step - bw) / 2;
+      var y = padT + plotH - bh;
+      var r = svgEl("rect", { x: x, y: y, width: bw, height: bh, rx: 4, fill: color });
+      var t = svgEl("title", {});
+      t.textContent = cfg.labels[i] + ": " + f(v);
+      r.appendChild(t);
+      svg.appendChild(r);
+      var tx = svgEl("text", { x: x + bw / 2, y: H - 10, "text-anchor": "middle", "font-size": 11, fill: mutedColor() });
+      tx.textContent = cfg.labels[i];
+      svg.appendChild(tx);
+    });
+  }
+
+  // line(el, {labels:[], values:[], color?, format?}) — single-series line.
+  function line(el, cfg) {
+    var W = 640, H = 280, padL = 46, padB = 30, padT = 12;
+    var svg = frame(el, W, H);
+    var max = maxOf(cfg.values);
+    var n = cfg.values.length;
+    var plotW = W - padL - 16, plotH = H - padT - padB;
+    var color = cfg.color || accent();
+    var f = coerceFormat(cfg.format);
+    for (var g = 0; g <= 4; g++) {
+      var gy = padT + plotH - (plotH * g) / 4;
+      svg.appendChild(svgEl("line", { x1: padL, y1: gy, x2: W - 16, y2: gy, stroke: "currentColor", "stroke-opacity": 0.08 }));
+      var lbl = svgEl("text", { x: padL - 8, y: gy + 4, "text-anchor": "end", "font-size": 10, fill: mutedColor() });
+      lbl.textContent = axisFmt((max * g) / 4);
+      svg.appendChild(lbl);
+    }
+    var pts = cfg.values.map(function (v, i) {
+      var x = padL + (n === 1 ? plotW / 2 : (plotW * i) / (n - 1));
+      var y = padT + plotH - (v / max) * plotH;
+      return [x, y];
+    });
+    var d = pts.map(function (p, i) { return (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1); }).join(" ");
+    svg.appendChild(svgEl("path", { d: d, fill: "none", stroke: color, "stroke-width": 2, "stroke-linejoin": "round" }));
+    pts.forEach(function (p, i) {
+      var c = svgEl("circle", { cx: p[0], cy: p[1], r: 3.5, fill: color });
+      var t = svgEl("title", {});
+      t.textContent = cfg.labels[i] + ": " + f(cfg.values[i]);
+      c.appendChild(t);
+      svg.appendChild(c);
+      var tx = svgEl("text", { x: p[0], y: H - 10, "text-anchor": "middle", "font-size": 11, fill: mutedColor() });
+      tx.textContent = cfg.labels[i];
+      svg.appendChild(tx);
+    });
+  }
+
+  // donut(el, {labels:[], values:[], colors?}) — donut with center total.
+  function donut(el, cfg) {
+    var W = 320, H = 280, cx = W / 2, cy = H / 2, R = 92, r = 58;
+    var svg = frame(el, W, H);
+    var total = cfg.values.reduce(function (a, b) { return a + b; }, 0) || 1;
+    var palette = cfg.colors || [accent(), "#1baf7a", "#eda100", "#e34948", "#4a3aa7", "#e87ba4"];
+    var a0 = -Math.PI / 2;
+    cfg.values.forEach(function (v, i) {
+      var a1 = a0 + (v / total) * Math.PI * 2;
+      var large = a1 - a0 > Math.PI ? 1 : 0;
+      var p = ["M", cx + R * Math.cos(a0), cy + R * Math.sin(a0),
+        "A", R, R, 0, large, 1, cx + R * Math.cos(a1), cy + R * Math.sin(a1),
+        "L", cx + r * Math.cos(a1), cy + r * Math.sin(a1),
+        "A", r, r, 0, large, 0, cx + r * Math.cos(a0), cy + r * Math.sin(a0), "Z"].join(" ");
+      var path = svgEl("path", { d: p, fill: palette[i % palette.length] });
+      var t = svgEl("title", {});
+      t.textContent = cfg.labels[i] + ": " + fmt.num(v) + " (" + fmt.pct(v / total) + ")";
+      path.appendChild(t);
+      svg.appendChild(path);
+      a0 = a1;
+    });
+    var center = svgEl("text", { x: cx, y: cy + 5, "text-anchor": "middle", "font-size": 20, "font-weight": 650, fill: "currentColor" });
+    center.textContent = fmt.num(total);
+    svg.appendChild(center);
+  }
+
+  window.skipShell = { fmt: fmt };
+  window.skipChart = { bar: bar, line: line, donut: donut };
+})();
+
+</script>
+<script>
+const SUPABASE_URL = 'https://flumfzlqtjxsvwhzecdc.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_6skOU7S--TL9JhAb9j8rUQ_PLi-lRXE';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let userId = null;
+let negocioId = null;
+
+const Auth = {
+  msg(texto) { document.getElementById('auth-msg').textContent = texto; },
+  async entrar() {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+    if (!email || !password) return this.msg('Informe e-mail e senha.');
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) return this.msg('Não foi possível entrar: ' + error.message);
+    await iniciarSessao();
+  },
+  async criarConta() {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+    if (!email || !password) return this.msg('Informe e-mail e senha.');
+    const { data, error } = await sb.auth.signUp({ email, password });
+    if (error) return this.msg('Não foi possível criar a conta: ' + error.message);
+    if (data.session) await iniciarSessao();
+    else this.msg('Conta criada. Confirme o e-mail antes de entrar.');
+  },
+  async sair() {
+    await sb.auth.signOut();
+    location.reload();
+  }
+};
+
+function mostrarAuth() {
+  document.getElementById('auth-view').classList.add('active');
+}
+
+async function iniciarSessao() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { mostrarAuth(); return; }
+  userId = session.user.id;
+  document.getElementById('auth-view').classList.remove('active');
+  App.closeSplash();
+  await carregarDados();
+}
+
+async function carregarDados() {
+  const { data: negs, error: e1 } = await sb.from('negocios').select('id').eq('user_id', userId).limit(1);
+  if (e1) return Auth.msg('Erro ao carregar: ' + e1.message);
+  if (negs && negs.length) {
+    negocioId = negs[0].id;
+  } else {
+    const { data: novo, error } = await sb.from('negocios').insert({ user_id: userId, nome: 'Meu negócio' }).select('id').single();
+    if (error) return Auth.msg('Erro ao criar negócio: ' + error.message);
+    negocioId = novo.id;
+  }
+
+  const { data: lans, error: e2 } = await sb.from('lancamentos').select('*')
+    .eq('negocio_id', negocioId).order('data', { ascending: false }).order('hora', { ascending: false });
+  if (e2) return Auth.msg('Erro ao carregar lançamentos: ' + e2.message);
+  App.lancamentos = (lans || []).map(r => ({
+    id: r.id, tipo: r.tipo, valor: r.valor_centavos / 100,
+    categoria: r.categoria || '', formaRecebimento: r.forma_recebimento || '',
+    formaPagamento: r.forma_pagamento || '', observacao: r.observacao || '',
+    observacaoDetalhe: r.observacao_detalhe || '', data: r.data,
+    hora: r.hora ? String(r.hora).slice(0, 5) : ''
+  }));
+
+  const { data: fechs, error: e3 } = await sb.from('fechamentos').select('*')
+    .eq('negocio_id', negocioId).order('data', { ascending: false });
+  if (e3) return Auth.msg('Erro ao carregar fechamentos: ' + e3.message);
+  App.fechamentos = (fechs || []).map(r => ({
+    data: r.data, entradas: r.entradas_centavos / 100, despesas: r.despesas_centavos / 100,
+    resultado: r.resultado_centavos / 100, porForma: r.por_forma || [],
+    porCategoria: r.por_categoria || [],
+    dinheiroContado: r.dinheiro_contado_centavos == null ? null : r.dinheiro_contado_centavos / 100,
+    observacao: r.observacao || '', atualizadoEm: r.atualizado_em || ''
+  }));
+
+  App.renderHome();
+  App.renderMovements();
+  App.updateResumo();
+}
+
+// Persistência: envolve o método original, que continua calculando a tela
+App.saveEntry = (function (orig) {
+  return async function () {
+    const antes = this.lancamentos.length;
+    orig.call(this);
+    if (this.lancamentos.length === antes) return; // validação falhou, nada a salvar
+    const item = this.lancamentos[0];
+    const { data, error } = await sb.from('lancamentos').insert({
+      negocio_id: negocioId, user_id: userId, tipo: item.tipo,
+      valor_centavos: Math.round(item.valor * 100),
+      categoria: item.categoria || null, forma_recebimento: item.formaRecebimento || null,
+      forma_pagamento: item.formaPagamento || null, observacao: item.observacao || null,
+      observacao_detalhe: item.observacaoDetalhe || null, data: item.data, hora: item.hora
+    }).select('id').single();
+    if (error) {
+      this.lancamentos.shift();
+      this.renderHome(); this.renderMovements(); this.updateResumo();
+      this.showToast('Não foi possível salvar. Tente de novo.');
+      return;
+    }
+    item.id = data.id;
+    this.renderHome(); this.renderMovements();
+  };
+})(App.saveEntry);
+
+App.confirmClose = (function (orig) {
+  return async function () {
+    orig.call(this);
+    const hoje = this.getTodayISODate();
+    const f = this.fechamentos.find(x => x.data === hoje);
+    if (!f) return;
+    const { error } = await sb.from('fechamentos').upsert({
+      negocio_id: negocioId, user_id: userId, data: f.data,
+      entradas_centavos: Math.round(f.entradas * 100),
+      despesas_centavos: Math.round(f.despesas * 100),
+      resultado_centavos: Math.round(f.resultado * 100),
+      dinheiro_contado_centavos: f.dinheiroContado == null ? null : Math.round(f.dinheiroContado * 100),
+      observacao: f.observacao || null, atualizado_em: f.atualizadoEm,
+      por_forma: f.porForma, por_categoria: f.porCategoria
+    }, { onConflict: 'negocio_id,data' });
+    if (error) this.showToast('Fechamento não salvo na nuvem. Tente de novo.');
+  };
+})(App.confirmClose);
+
+document.addEventListener('DOMContentLoaded', iniciarSessao);
+</script>
+</body>
+</html>
