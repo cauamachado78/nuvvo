@@ -2258,7 +2258,7 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
             .delete()
             .eq('id', id);
           if (error) throw error;
-          await this.navigate('home');
+          location.reload();
         } catch (err) {
           console.error('Erro ao excluir:', err);
           alert('Não foi possível excluir. Tente de novo.');
