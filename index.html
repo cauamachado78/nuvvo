@@ -1022,13 +1022,25 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         <p style="font-size: 13px; color: rgba(255,255,255,0.5); margin: 0 0 16px;">Crie o caixa do seu negócio em segundos.</p>
         <input id="su-empresa" type="text" class="app-input" placeholder="Nome da empresa" style="width: 100%; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
         <input id="su-email" type="email" class="app-input" placeholder="E-mail" autocomplete="email" style="width: 100%; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
-        <input id="su-telefone" type="tel" class="app-input" placeholder="Telefone (11) 99999-9999" style="width: 100%; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
-        <input id="su-senha" type="password" class="app-input" placeholder="Senha (mín. 6 caracteres)" autocomplete="new-password" style="width: 100%; margin-bottom: 12px; padding: 12px 14px; font-size: 15px;">
+<input id="su-telefone" type="tel" class="app-input" placeholder="Telefone (11) 99999-9999" oninput="Auth.mascaraTelefone(this)" style="width: 100%; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
+<input id="su-senha" type="password" class="app-input" placeholder="Senha (mín. 8 caracteres)" autocomplete="new-password" style="width: 100%; margin-bottom: 12px; padding: 12px 14px; font-size: 15px;">
         <button type="button" class="touch-btn btn-primary-action" style="width: 100%;" onclick="Auth.salvarCadastro()">Criar conta</button>
         <p id="su-msg" style="font-size: 13px; color: var(--red-expense); min-height: 18px; margin-top: 10px; text-align: center;"></p>
       </div>
     </div>
 
+      <div id="confirm-email-modal" style="position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; padding: 20px;">
+      <div style="background: #1a1a1a; border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 300px; text-align: center;">
+        <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 16px;">
+          <span style="width: 10px; height: 10px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
+          <span style="width: 10px; height: 10px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
+          <span style="width: 10px; height: 10px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
+        </div>
+        <div style="font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 8px;">Confirme seu e-mail</div>
+        <p style="font-size: 13px; color: rgba(255,255,255,0.55); margin: 0 0 20px; line-height: 1.5;">Enviamos um link de confirmação para seu e-mail. Confirme para acessar o Nuvvo.</p>
+        <button type="button" class="touch-btn btn-primary-action" style="width: 100%;" onclick="Auth.fecharConfirmacao()">Entendi</button>
+      </div>
+    </div>
     <!-- Faixa verde profundo no topo (#1A5C2D) -->
     <div class="top-strip" aria-hidden="true"></div>
 
@@ -3376,6 +3388,9 @@ const Auth = {
   fecharCadastro() {
     document.getElementById('signup-modal').style.display = 'none';
   },
+    fecharConfirmacao() {
+    document.getElementById('confirm-email-modal').style.display = 'none';
+  },
   async entrar() {
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value;
@@ -3392,7 +3407,7 @@ const Auth = {
     if (!empresa) return this.suMsg('Informe o nome da empresa.');
     if (!email) return this.suMsg('Informe o e-mail.');
     if (telefone.replace(/\D/g, '').length < 10) return this.suMsg('Informe um telefone válido com DDD.');
-    if (senha.length < 6) return this.suMsg('A senha precisa ter no mínimo 6 caracteres.');
+    if (senha.length < 8) return this.suMsg('A senha precisa ter no mínimo 8 caracteres.');
     const { data, error } = await sb.auth.signUp({ email, password: senha });
     if (error) return this.suMsg('Não foi possível criar a conta: ' + error.message);
     if (data.session) {
@@ -3405,7 +3420,8 @@ const Auth = {
       await iniciarSessao();
     } else {
       this.fecharCadastro();
-      this.msg('Conta criada. Confirme o e-mail antes de entrar.');
+      this.fecharCadastro();
+      document.getElementById('confirm-email-modal').style.display = 'flex';
     }
   },
   async sair() {
