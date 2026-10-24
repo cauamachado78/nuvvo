@@ -2225,7 +2225,7 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         const catLabel = item.categoria ? ` • ${item.categoria}` : '';
 
         return `
-          <div class="mov-item" onclick="App.openMovementDetails(${item.id})" style="cursor: pointer;" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')App.openMovementDetails(${item.id})" title="Ver detalhes do lançamento">
+          <div class="mov-item" onclick="App.openMovementDetails('${item.id}')" style="cursor: pointer;" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')App.openMovementDetails('${item.id}')" title="Ver detalhes do lançamento">
             <div style="display: flex; align-items: center; min-width: 0;">
               <div class="mov-icon" style="background: ${bgIcon}; color: ${textIcon};">
                 ${iconSvg}
@@ -2243,7 +2243,7 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
               <div class="${valClass}" style="font-size: 15px; font-weight: 600;">
                 ${sign} ${this.fmtBRL(item.valor)}
               </div>
-              <button onclick="event.stopPropagation(); App.deleteMovement(${item.id})" title="Excluir lançamento" style="background: none; border: none; cursor: pointer; padding: 4px; border-radius: 6px; color: var(--text-muted); display: flex; align-items: center;" onmouseover="this.style.color='var(--red-expense)'" onmouseout="this.style.color='var(--text-muted)'">
+              <button onclick="event.stopPropagation(); App.deleteMovement('${item.id}')" title="Excluir lançamento" style="background: none; border: none; cursor: pointer; padding: 4px; border-radius: 6px; color: var(--text-muted); display: flex; align-items: center;" onmouseover="this.style.color='var(--red-expense)'" onmouseout="this.style.color='var(--text-muted)'">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
               </button>
             </div>
@@ -3108,6 +3108,7 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
           `;
         }
         container.innerHTML = html;
+    
       },
 
       updateResumo() {
