@@ -3323,35 +3323,41 @@ const Auth = {
     const empresa = document.getElementById('su-empresa').value.trim();
     const email = document.getElementById('su-email').value.trim();
     const telefone = document.getElementById('su-telefone').value.trim();
-    const nomeDaEmpresa = document.getElementById('id-do-campo-nome').value.trim()
-const telefone = document.getElementById('id-do-campo-telefone').value.trim()
     const senha = document.getElementById('su-senha').value;
+
     if (!empresa) return this.suMsg('Informe o nome da empresa.');
     if (!email) return this.suMsg('Informe o e-mail.');
     if (telefone.replace(/\D/g, '').length < 10) return this.suMsg('Informe um telefone válido com DDD.');
     if (senha.length < 8) return this.suMsg('A senha precisa ter no mínimo 8 caracteres.');
-const { data, error } = await supabase.auth.signUp({
-  email,
-  password,
-  options: {
-    data: {
-      nome_empresa: nomeDaEmpresa,
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password: senha,
+      options: {
+        data: {
+          nome_empresa: empresa,
+          telefone: telefone
+        }
+      }
+    });
+
+    if (error) return this.suMsg(error.message);
+
+    // Registra o negócio do usuário
+    const { error: errNeg } = await supabase.from('negocios').insert({
+      usuario_id: data.user.id,
+      nome: empresa,
       telefone: telefone
-    }
-  }
-})
-      if (errNeg) return this.suMsg('Conta criada, mas o negócio não foi registrado: ' + errNeg.message);
+    });
+    if (errNeg) return this.suMsg('Conta criada, mas o negócio não foi registrado: ' + errNeg.message);
+
+    if (data.session) {
       await iniciarSessao();
     } else {
       this.fecharCadastro();
       document.getElementById('confirm-email-modal').style.display = 'flex';
     }
   },
-  async sair() {
-    await sb.auth.signOut();
-    location.reload();
-  }
-};
 
 function mostrarAuth() {
   document.getElementById('auth-view').classList.add('active');
