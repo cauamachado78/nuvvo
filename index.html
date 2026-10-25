@@ -1096,7 +1096,7 @@
         <div id="entry-flow-container" style="display: flex; flex-direction: column;">
           <!-- ENTRADA: 2. Forma de recebimento (opcional) -->
           <div id="income-receipt-container" style="order: 2; display: none; margin-bottom: 14px;">
-            <span class="ui-label" style="font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Forma de recebimento (opcional)</span>
+<span class="ui-label" style="font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Forma de recebimento <span style="color:#e5484d">*</span></span>
             <div class="chip-group" style="grid-template-columns: repeat(4, 1fr); margin-top: 4px;" role="radiogroup" aria-label="Forma de recebimento (opcional)">
               <button type="button" class="cat-chip" style="padding: 10px 4px; font-size: 13px;" onclick="App.selectFormaRecebimento('Dinheiro', this)" role="radio" aria-checked="false">Dinheiro</button>
               <button type="button" class="cat-chip" style="padding: 10px 4px; font-size: 13px;" onclick="App.selectFormaRecebimento('Pix', this)" role="radio" aria-checked="false">Pix</button>
@@ -2087,9 +2087,7 @@
 
         const titleEl = document.getElementById('home-title');
         if (titleEl) {
-          titleEl.textContent = nomeEmpresa
-            ? `${greeting}, ${nomeEmpresa}`
-            : greeting;
+titleEl.textContent = nomeEmpresa || 'Seu negócio';
         }
 
         const dateEl = document.getElementById('home-current-date');
