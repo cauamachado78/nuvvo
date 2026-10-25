@@ -3342,7 +3342,7 @@ const { error: errNeg } = await sb.from('negocios').insert({
   nome: empresa,
   telefone: telefone
     });
-    if (errNeg) return this.suMsg('Conta criada, mas o negócio não foi registrado: ' + errNeg.message);
+    if (errNeg) this.suMsg('Conta criada, mas o negócio não foi registrado: ' + errNeg.message);
 
     if (data.session) {
       await iniciarSessao();
