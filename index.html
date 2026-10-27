@@ -894,30 +894,9 @@
       <input id="auth-email" type="email" class="app-input" placeholder="E-mail" autocomplete="email" style="width: 100%; max-width: 250px; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
       <input id="auth-password" type="password" class="app-input" placeholder="Senha" autocomplete="current-password" style="width: 100%; max-width: 250px; margin-bottom: 12px; padding: 12px 14px; font-size: 15px;">
       <button type="button" class="touch-btn btn-primary-action" style="max-width: 250px;" onclick="Auth.entrar()">Entrar</button>
-      <div style="display: flex; align-items: center; gap: 10px; max-width: 250px; margin: 14px auto 6px;">
-        <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.12);"></div>
-        <span style="font-size: 12px; color: rgba(255,255,255,0.45); letter-spacing: 1px;">OU</span>
-        <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.12);"></div>
-      </div>
-      <button type="button" class="touch-btn btn-subtle" style="max-width: 150px; margin-top: 6px; padding: 9px 18px; font-size: 13px;" onclick="Auth.abrirCadastro()">Criar conta</button>
       <p id="auth-msg" style="font-size: 13px; color: var(--red-expense); min-height: 20px; margin-top: 12px; text-align: center;"></p>
     </div>
 
-    <div id="signup-modal" style="position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; padding: 20px;">
-      <div style="background: #1a1a1a; border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 24px; width: 100%; max-width: 320px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-          <div style="font-size: 18px; font-weight: 600; color: #fff;">Criar conta</div>
-          <button type="button" onclick="Auth.fecharCadastro()" style="background: none; border: none; color: rgba(255,255,255,0.5); font-size: 22px; cursor: pointer; padding: 4px 8px;">&times;</button>
-        </div>
-        <p style="font-size: 13px; color: rgba(255,255,255,0.5); margin: 0 0 16px;">Crie o caixa do seu negócio em segundos.</p>
-        <input id="su-empresa" type="text" class="app-input" placeholder="Nome da empresa" style="width: 100%; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
-        <input id="su-email" type="email" class="app-input" placeholder="E-mail" autocomplete="email" style="width: 100%; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
-        <input id="su-telefone" type="tel" class="app-input" placeholder="Telefone (11) 99999-9999" oninput="Auth.mascaraTelefone(this)" style="width: 100%; margin-bottom: 8px; padding: 12px 14px; font-size: 15px;">
-        <input id="su-senha" type="password" class="app-input" placeholder="Senha (mín. 8 caracteres)" autocomplete="new-password" style="width: 100%; margin-bottom: 12px; padding: 12px 14px; font-size: 15px;">
-        <button type="button" class="touch-btn btn-primary-action" style="width: 100%;" onclick="Auth.salvarCadastro()">Criar conta</button>
-        <p id="su-msg" style="font-size: 13px; color: var(--red-expense); min-height: 18px; margin-top: 10px; text-align: center;"></p>
-      </div>
-    </div>
 
     <!-- Faixa verde profundo no topo (#1A5C2D) -->
     <div id="confirm-email-modal" style="position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; padding: 20px;">
