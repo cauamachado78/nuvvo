@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>nuvvo — criar senha</title>
+  <title>nuvvo — criar acesso</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
   <style>
@@ -53,6 +53,8 @@
       transition: border-color .15s;
     }
     input:focus { border-color: #1ed760; }
+    input[readonly] { color: #8a8a8a; cursor: not-allowed; background: #101010; }
+    input.codigo { font-size: 24px; letter-spacing: 8px; text-align: center; font-weight: 600; }
     button {
       width: 100%;
       padding: 15px;
@@ -68,26 +70,53 @@
     }
     button:hover:not(:disabled) { opacity: .9; }
     button:disabled { opacity: .4; cursor: not-allowed; }
+    .link-btn {
+      background: none; color: #8a8a8a; font-weight: 400; font-size: 13px;
+      padding: 8px 0; margin-top: 10px; text-decoration: underline;
+    }
+    .link-btn:hover:not(:disabled) { color: #ededed; opacity: 1; }
     .msg { font-size: 13px; margin-top: 18px; min-height: 20px; line-height: 1.5; }
     .erro { color: #f87171; }
     .ok { color: #1ed760; }
     .loading { color: #8a8a8a; }
+    .oculto { display: none; }
   </style>
 </head>
 <body>
   <div class="card">
     <div class="logo">w</div>
     <h1>nuvvo</h1>
-    <p class="sub">Crie sua senha para acessar o caixa do seu negócio.</p>
+    <p class="sub" id="sub">Use o mesmo e-mail da compra para criar seu acesso.</p>
 
-    <form id="form">
-      <label for="senha">Nova senha</label>
+    <!-- ETAPA 1: e-mail -->
+    <form id="form-email">
+      <label for="email">E-mail da compra</label>
+      <input type="email" id="email" placeholder="seuemail@exemplo.com" autocomplete="email" required>
+      <button type="submit" id="btn-email">Enviar código</button>
+    </form>
+
+    <!-- ETAPA 2: código + dados -->
+    <form id="form-senha" class="oculto">
+      <label for="email-travado">E-mail</label>
+      <input type="email" id="email-travado" readonly>
+
+      <div id="bloco-codigo">
+        <label for="codigo">Código de 6 dígitos (enviado para seu e-mail)</label>
+        <input type="text" id="codigo" class="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="000000">
+      </div>
+
+      <label for="empresa">Nome da empresa</label>
+      <input type="text" id="empresa" placeholder="Ex.: Studio da Ana" autocomplete="organization" required>
+
+      <label for="senha">Senha</label>
       <input type="password" id="senha" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required>
 
-      <label for="confirma">Confirme a senha</label>
+      <label for="confirma">Confirmar senha</label>
       <input type="password" id="confirma" placeholder="Digite novamente" autocomplete="new-password" required>
 
-      <button type="submit" id="btn">Criar senha</button>
+      <button type="submit" id="btn-senha">Criar meu acesso</button>
+      <button type="button" class="link-btn" id="btn-reenviar">Reenviar código</button>
+      <button type="button" class="link-btn" id="btn-trocar">Usar outro e-mail</button>
     </form>
 
     <div class="msg" id="msg"></div>
@@ -98,53 +127,150 @@
 
     const SUPABASE_URL = "https://flumfzlqtjxsvwhzecdc.supabase.co";
     const SUPABASE_ANON = "sb_publishable_6skOU7S--TL9JhAb9j8rUQ_PLi-lRXE";
+    const URL_APP = "https://app.appnuvvo.com.br";
 
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
-    const form = document.getElementById("form");
-    const btn = document.getElementById("btn");
-    const msg = document.getElementById("msg");
+
+    const $ = (id) => document.getElementById(id);
+    const formEmail = $("form-email");
+    const formSenha = $("form-senha");
+    const msg = $("msg");
+
+    let emailAtual = "";
+    let jaLogado = false; // true quando a pessoa veio pelo link antigo de convite
 
     const setMsg = (texto, classe) => {
       msg.textContent = texto;
       msg.className = "msg " + (classe || "");
     };
 
-    // Supabase entrega a sessão no hash da URL depois do clique no e-mail
-    const { data, error } = await sb.auth.getSession();
-
-    if (error || !data.session) {
-      setMsg("Link inválido ou expirado. Peça um novo convite.", "erro");
-      btn.disabled = true;
+    function irParaEtapa2(email, comCodigo) {
+      emailAtual = email;
+      $("email-travado").value = email;
+      $("bloco-codigo").classList.toggle("oculto", !comCodigo);
+      $("btn-reenviar").classList.toggle("oculto", !comCodigo);
+      $("btn-trocar").classList.toggle("oculto", !comCodigo);
+      formEmail.classList.add("oculto");
+      formSenha.classList.remove("oculto");
+      $("sub").textContent = comCodigo
+        ? "Enviamos um código para o seu e-mail. Confira também a caixa de spam."
+        : "Complete seus dados para acessar o caixa do seu negócio.";
+      (comCodigo ? $("codigo") : $("empresa")).focus();
     }
 
-    form.onsubmit = async (e) => {
+    async function enviarCodigo(email) {
+      const { error } = await sb.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: false },
+      });
+      if (error) {
+        const m = (error.message || "").toLowerCase();
+        if (m.includes("signup") || m.includes("not found") || m.includes("not allowed")) {
+          throw new Error("Não encontramos uma assinatura com esse e-mail. Use o mesmo e-mail da compra. Se acabou de pagar, aguarde 1 minuto e tente de novo.");
+        }
+        if (m.includes("rate") || m.includes("seconds") || m.includes("security")) {
+          throw new Error("Aguarde um minuto antes de pedir um novo código.");
+        }
+        throw new Error("Não foi possível enviar o código: " + error.message);
+      }
+    }
+
+    // Quem chegou pelo link antigo de convite (e-mail do Asaas) já vem logado
+    const { data: inicio } = await sb.auth.getSession();
+    if (inicio?.session?.user?.email) {
+      jaLogado = true;
+      irParaEtapa2(inicio.session.user.email, false);
+    }
+
+    // ETAPA 1: enviar código
+    formEmail.onsubmit = async (e) => {
       e.preventDefault();
-
-      const senha = document.getElementById("senha").value;
-      const confirma = document.getElementById("confirma").value;
-
-      if (senha.length < 8) {
-        setMsg("A senha precisa ter pelo menos 8 caracteres.", "erro");
-        return;
+      const email = $("email").value.trim().toLowerCase();
+      if (!email) return;
+      $("btn-email").disabled = true;
+      setMsg("Enviando código...", "loading");
+      try {
+        await enviarCodigo(email);
+        setMsg("");
+        irParaEtapa2(email, true);
+      } catch (err) {
+        setMsg(err.message, "erro");
+      } finally {
+        $("btn-email").disabled = false;
       }
-      if (senha !== confirma) {
-        setMsg("As senhas não conferem.", "erro");
-        return;
-      }
+    };
 
-      btn.disabled = true;
+    // Reenviar código
+    $("btn-reenviar").onclick = async () => {
+      $("btn-reenviar").disabled = true;
+      setMsg("Reenviando código...", "loading");
+      try {
+        await enviarCodigo(emailAtual);
+        setMsg("Código reenviado. Confira seu e-mail.", "ok");
+      } catch (err) {
+        setMsg(err.message, "erro");
+      }
+      setTimeout(() => { $("btn-reenviar").disabled = false; }, 60000);
+    };
+
+    // Trocar e-mail
+    $("btn-trocar").onclick = () => {
+      formSenha.classList.add("oculto");
+      formEmail.classList.remove("oculto");
+      $("sub").textContent = "Use o mesmo e-mail da compra para criar seu acesso.";
+      setMsg("");
+    };
+
+    // ETAPA 2: confirmar código e criar senha
+    formSenha.onsubmit = async (e) => {
+      e.preventDefault();
+      const codigo = $("codigo").value.replace(/\D/g, "");
+      const empresa = $("empresa").value.trim();
+      const senha = $("senha").value;
+      const confirma = $("confirma").value;
+
+      if (!jaLogado && codigo.length < 6) return setMsg("Digite o código que chegou no seu e-mail.", "erro");
+      if (!empresa) return setMsg("Informe o nome da empresa.", "erro");
+      if (senha.length < 8) return setMsg("A senha precisa ter pelo menos 8 caracteres.", "erro");
+      if (senha !== confirma) return setMsg("As senhas não conferem.", "erro");
+
+      $("btn-senha").disabled = true;
       setMsg("Salvando...", "loading");
 
-      const { error: erroUpdate } = await sb.auth.updateUser({ password: senha });
+      try {
+        // 1. Confirma o código (pula se veio logado pelo link antigo)
+        if (!jaLogado) {
+          const { error: erroCodigo } = await sb.auth.verifyOtp({
+            email: emailAtual,
+            token: codigo,
+            type: "email",
+          });
+          if (erroCodigo) throw new Error("Código inválido ou expirado. Peça um novo código.");
+          jaLogado = true;
+        }
 
-      if (erroUpdate) {
-        setMsg("Erro: " + erroUpdate.message, "erro");
-        btn.disabled = false;
-        return;
+        // 2. Salva a senha e o nome da empresa no usuário
+        const { data: upd, error: erroSenha } = await sb.auth.updateUser({
+          password: senha,
+          data: { nome_empresa: empresa },
+        });
+        if (erroSenha) throw new Error("Erro ao salvar a senha: " + erroSenha.message);
+
+        // 3. Registra (ou renomeia) o negócio do usuário
+        const userId = upd.user.id;
+        const { data: negs } = await sb.from("negocios").select("id").eq("user_id", userId).limit(1);
+        if (negs && negs.length) {
+          await sb.from("negocios").update({ nome: empresa }).eq("id", negs[0].id);
+        } else {
+          await sb.from("negocios").insert({ user_id: userId, nome: empresa });
+        }
+
+        setMsg("Acesso criado! Entrando...", "ok");
+        setTimeout(() => { window.location.href = URL_APP; }, 1200);
+      } catch (err) {
+        setMsg(err.message, "erro");
+        $("btn-senha").disabled = false;
       }
-
-      setMsg("Senha criada. Entrando...", "ok");
-      setTimeout(() => { window.location.href = "https://app.appnuvvo.com.br"; }, 1200);
     };
   </script>
 </body>
