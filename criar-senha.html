@@ -166,7 +166,7 @@
       if (error) {
         const m = (error.message || "").toLowerCase();
         if (m.includes("signup") || m.includes("not found") || m.includes("not allowed")) {
-          throw new Error("Não encontramos uma assinatura com esse e-mail. Use o mesmo e-mail da compra. Se acabou de pagar, aguarde 1 minuto e tente de novo.");
+          throw new Error("Não encontramos uma assinatura com esse e-mail. Use o mesmo e-mail da compra. Se acabou de pagar, aguarde 1 minuto e tente de novo. Se continuar, fale com a gente: appnuvvo@gmail.com");
         }
         if (m.includes("rate") || m.includes("seconds") || m.includes("security")) {
           throw new Error("Aguarde um minuto antes de pedir um novo código.");
