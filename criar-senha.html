@@ -176,12 +176,6 @@
     }
 
     // Quem chegou pelo link antigo de convite (e-mail do Asaas) já vem logado
-    const { data: inicio } = await sb.auth.getSession();
-    if (inicio?.session?.user?.email) {
-      jaLogado = true;
-      irParaEtapa2(inicio.session.user.email, false);
-    }
-
     // Quem vem do "Testar 7 dias grátis" da LP chega com #teste&email=... :
     // já preenche o e-mail e manda o código, sem precisar digitar de novo.
     const hashParams = new URLSearchParams(location.hash.replace(/^#/, ""));
@@ -191,6 +185,16 @@
     if (vemDoTeste) {
       document.title = "nuvvo — seu teste grátis";
       $("sub").textContent = "Seu teste grátis de 7 dias está liberado. Falta só criar sua senha.";
+    }
+
+    const { data: inicio } = await sb.auth.getSession();
+    const emailSessao = (inicio?.session?.user?.email || "").toLowerCase();
+    if (emailSessao && emailDaLP && emailSessao !== emailDaLP) {
+      // Veio da LP com outro e-mail: sai da conta antiga pra liberar a nova
+      await sb.auth.signOut();
+    } else if (emailSessao) {
+      jaLogado = true;
+      irParaEtapa2(inicio.session.user.email, false);
     }
 
     // ETAPA 1: enviar código
