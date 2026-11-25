@@ -182,6 +182,17 @@
       irParaEtapa2(inicio.session.user.email, false);
     }
 
+    // Quem vem do "Testar 7 dias grátis" da LP chega com #teste&email=... :
+    // já preenche o e-mail e manda o código, sem precisar digitar de novo.
+    const hashParams = new URLSearchParams(location.hash.replace(/^#/, ""));
+    const emailDaLP = (hashParams.get("email") || "").trim().toLowerCase();
+    const vemDoTeste = hashParams.has("teste");
+    if (emailDaLP) history.replaceState(null, "", location.pathname); // tira o e-mail da barra de endereço
+    if (vemDoTeste) {
+      document.title = "nuvvo — seu teste grátis";
+      $("sub").textContent = "Seu teste grátis de 7 dias está liberado. Falta só criar sua senha.";
+    }
+
     // ETAPA 1: enviar código
     formEmail.onsubmit = async (e) => {
       e.preventDefault();
@@ -199,6 +210,12 @@
         $("btn-email").disabled = false;
       }
     };
+
+    // Envia o código automaticamente quando o e-mail veio da LP
+    if (emailDaLP && !jaLogado) {
+      $("email").value = emailDaLP;
+      formEmail.requestSubmit ? formEmail.requestSubmit() : formEmail.onsubmit(new Event("submit"));
+    }
 
     // Reenviar código
     $("btn-reenviar").onclick = async () => {

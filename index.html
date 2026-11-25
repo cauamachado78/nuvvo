@@ -930,7 +930,9 @@
       </div>
       <div class="splash-wordmark">nuvvo</div>
       <p id="bloqueio-texto" class="splash-tagline" style="max-width: 280px; text-align: center;">Sua assinatura não está ativa. Renove para continuar usando o caixa do seu negócio. Seus dados continuam salvos.</p>
-      <a href="https://pay.herospark.com/nuvvo-o-controle-financeiro-que-seu-negocio-precisa-553275" class="touch-btn btn-primary-action" style="max-width: 250px; width: 100%; text-decoration: none; display: flex; align-items: center; justify-content: center;">Renovar assinatura</a>
+      <a href="https://pay.herospark.com/nuvvo-o-controle-financeiro-que-seu-negocio-precisa-553871?utm_source=app&utm_medium=assinar" class="touch-btn btn-primary-action" style="max-width: 250px; width: 100%; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2;">Anual: 12x de R$ 10,99<span style="font-size: 11px; font-weight: 500; opacity: .85;">melhor preço · economiza R$ 48</span></a>
+      <a href="https://pay.herospark.com/nuvvo-o-controle-financeiro-que-seu-negocio-precisa-553275?utm_source=app&utm_medium=assinar" class="touch-btn" style="max-width: 250px; width: 100%; margin-top: 10px; text-decoration: none; display: flex; align-items: center; justify-content: center; background: none; border: 1px solid rgba(255,255,255,0.25); color: #ededed;">Mensal: R$ 14,99/mês</a>
+      <p id="bloqueio-email" style="font-size: 12px; color: rgba(255,255,255,0.6); max-width: 260px; text-align: center; margin: 10px 0 0;"></p>
       <button type="button" class="touch-btn" style="max-width: 250px; width: 100%; margin-top: 10px; background: none; border: 1px solid rgba(255,255,255,0.15); color: #ededed;" onclick="verificarAssinaturaDeNovo()">Já paguei, verificar de novo</button>
       <button type="button" style="background: none; border: none; color: rgba(255,255,255,0.55); font-size: 13px; text-decoration: underline; margin-top: 14px; cursor: pointer;" onclick="Auth.sair()">Sair</button>
     </div>
@@ -1016,6 +1018,17 @@
         <div style="margin-bottom: 18px;">
           <p class="ui-label" id="home-current-date" style="margin: 0 0 3px 0; text-transform: capitalize;"></p>
           <h1 id="home-title" class="ui-title-lg"></h1>
+        </div>
+
+        <!-- Aviso do teste grátis (só aparece para quem está testando) -->
+        <div id="teste-banner" class="paper-card" style="display: none; margin-bottom: 16px; border-color: var(--green-primary);">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <div style="flex: 1; min-width: 0;">
+              <div id="teste-banner-titulo" style="font-weight: 700; font-size: 15px; color: var(--text-main);">Teste grátis</div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Depois, continue por 12x de R$ 10,99.</div>
+            </div>
+            <button type="button" class="touch-btn btn-action-income" style="flex: 0 0 auto; width: auto; min-height: 40px; padding: 8px 16px; font-size: 14px;" onclick="App.abrirPlanos()">Assinar</button>
+          </div>
         </div>
 
         <!-- Resumo de Hoje Card (Elemento Dominante) -->
@@ -1501,6 +1514,23 @@
           <button type="button" class="touch-btn btn-subtle" style="flex: 1; color: var(--red-expense);" onclick="App.deleteMovement(App.detailId)">
             Excluir
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Planos (aberto pelo aviso do teste grátis) -->
+    <div id="planos-backdrop" class="period-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="planos-title" onclick="if(event.target.id==='planos-backdrop')App.fecharPlanos()">
+      <div class="period-sheet">
+        <div class="sheet-header">
+          <h2 id="planos-title" class="ui-title-md" style="font-size: 17px; margin: 0;">Continue usando o Nuvvo</h2>
+        </div>
+        <div class="sheet-body">
+          <p class="confirm-text" id="planos-texto">Seus lançamentos continuam salvos. Na compra, use o mesmo e-mail da sua conta.</p>
+          <a href="https://pay.herospark.com/nuvvo-o-controle-financeiro-que-seu-negocio-precisa-553871?utm_source=app&utm_medium=assinar" class="touch-btn btn-action-income" style="width: 100%; margin-top: 12px; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2;">Anual: 12x de R$ 10,99<span style="font-size: 11px; font-weight: 500; opacity: .85;">melhor preço · economiza R$ 48</span></a>
+          <a href="https://pay.herospark.com/nuvvo-o-controle-financeiro-que-seu-negocio-precisa-553275?utm_source=app&utm_medium=assinar" class="touch-btn btn-subtle" style="width: 100%; margin-top: 8px; text-decoration: none; display: flex; align-items: center; justify-content: center;">Mensal: R$ 14,99/mês</a>
+        </div>
+        <div class="sheet-footer">
+          <button type="button" class="touch-btn btn-subtle" style="width: 100%;" onclick="App.fecharPlanos()">Agora não</button>
         </div>
       </div>
     </div>
@@ -2254,6 +2284,16 @@ titleEl.textContent = nomeEmpresa || 'Seu negócio';
         this.closeMovementDetails();
         const m = document.getElementById('del-confirm-backdrop');
         if (m) m.classList.add('open');
+      },
+
+      abrirPlanos() {
+        const m = document.getElementById('planos-backdrop');
+        if (m) m.classList.add('open');
+      },
+
+      fecharPlanos() {
+        const m = document.getElementById('planos-backdrop');
+        if (m) m.classList.remove('open');
       },
 
       closeDeleteConfirm() {
@@ -3380,15 +3420,41 @@ async function iniciarSessao() {
 
   // Confere se a assinatura está ativa (tabela leads, via função assinatura_ativa)
   const { data: ativa, error: erroAss } = await sb.rpc('assinatura_ativa');
+  // Status e validade (a política do banco deixa cada pessoa ler só a própria linha)
+  let assinatura = null;
+  try {
+    const { data } = await sb.from('leads').select('status, expira_em').limit(1).maybeSingle();
+    assinatura = data;
+  } catch (_) {}
+  const emailConta = session.user.email || '';
+  const bloqEmail = document.getElementById('bloqueio-email');
+  if (bloqEmail) bloqEmail.textContent = emailConta ? `Na compra, use o e-mail ${emailConta}.` : '';
+  const planosTexto = document.getElementById('planos-texto');
+  if (planosTexto && emailConta) planosTexto.textContent = `Seus lançamentos continuam salvos. Na compra, use o e-mail ${emailConta} pra liberar na hora.`;
   if (erroAss || !ativa) {
     document.getElementById('bloqueio-texto').textContent = erroAss
       ? 'Não conseguimos verificar sua assinatura agora. Verifique sua internet e tente de novo.'
-      : 'Sua assinatura não está ativa. Renove para continuar usando o caixa do seu negócio. Seus dados continuam salvos.';
+      : (assinatura && assinatura.status === 'teste')
+        ? 'Seu teste grátis de 7 dias acabou. Seus lançamentos continuam salvos. Escolha um plano para continuar.'
+        : 'Sua assinatura não está ativa. Renove para continuar usando o caixa do seu negócio. Seus dados continuam salvos.';
     document.getElementById('bloqueio-view').classList.add('active');
     App.closeSplash();
     return;
   }
   document.getElementById('bloqueio-view').classList.remove('active');
+
+  // Teste grátis: mostra quantos dias faltam
+  const banner = document.getElementById('teste-banner');
+  if (banner) {
+    if (assinatura && assinatura.status === 'teste' && assinatura.expira_em) {
+      const dias = Math.max(0, Math.ceil((new Date(assinatura.expira_em) - new Date()) / 86400000));
+      document.getElementById('teste-banner-titulo').textContent =
+        dias <= 1 ? 'Teste grátis: último dia' : `Teste grátis: faltam ${dias} dias`;
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
 
   App.closeSplash();
   await carregarDados();
